@@ -4,6 +4,7 @@
 如花商城是基于Thinkphp6+uniapp+element开发的一套新零售移动电商系统，采用三端分离。
 功能包含商城、优惠券、分销、拼团、限时折扣、积分等功能，更适合企业二次开发；
 微信小程序端，微信公众号端，APP端。
+匆匆上线，还有很多不完善，疯狂迭代中...
 
 #### 软件架构
 QQ群：728615087
@@ -16,8 +17,8 @@ QQ群：728615087
 3.  访问：域名/h5 进入前端（未打包，自行下载：https://github.com/baok1592/ruhua_vue）
 
 #### 扫码演示
-![小程序](https://github.com/baok1592/ruhua/raw/master/xcx.jpg)
-![公众号](https://github.com/baok1592/ruhua/raw/master/h5.png)
+![image](https://github.com/baok1592/ruhua/raw/master/xcx.jpg)
+![image](https://github.com/baok1592/ruhua/raw/master/h5.png)
 
 #### 后台演示
 http://api.demo.ruhuashop.com/cms/	账号：admin	密码123456
