@@ -17,7 +17,7 @@
 安装包约12MB，由于包含thinkphp核心包与后台CMS文件，所以较大。
 1.  访问：域名/install 进行一键安装
 2.  访问：域名/cms 直接进入后台
-3.  访问：域名/h5 进入前端（未打包，自行下载：https://github.com/baok1592/ruhua_vue）
+3.  访问：域名/h5 进入前端 -> 未打包，自行下载：https://github.com/baok1592/ruhua_vue
 
 #### 扫码演示
 ![image](https://github.com/baok1592/ruhua/raw/master/xcx.jpg)
