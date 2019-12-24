@@ -21,8 +21,8 @@
 3.  访问：域名/h5 进入前端 -> 未打包，自行下载：https://github.com/baok1592/ruhua_vue
 
 #### 扫码演示
-![image](https://github.com/baok1592/ruhua/raw/master/xcx.jpg)
-![image](https://github.com/baok1592/ruhua/raw/master/h5.png)
+![image](https://gitee.com/qianyu_wyc/ruhua/raw/master/xcx.jpg)
+![image](https://gitee.com/qianyu_wyc/ruhua/raw/master/h5.png)
 
 #### 后台演示
 http://api.demo.ruhuashop.com/cms/	账号：admin	密码123456
