@@ -15,4 +15,7 @@ class ShoppingValidate extends BaseValidate
         'total_price'=>'require',
         'coupon_id'=>'min:0',
     ];
+    protected $message = [
+        'msg.chsAlphaNum'        => '备注只能是汉字、字母和数字',
+    ];
 }

@@ -1,0 +1,14 @@
+/.idea
+/
+/.vscode
+/
+/vendor/
+/runtime/
+
+*.log
+
+.env
+.travis.yml
+LICENSE.txt
+composer.json
+composer.lock

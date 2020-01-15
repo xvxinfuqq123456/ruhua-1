@@ -37,7 +37,7 @@ class addPoints
             if($state==1){
                 $points_con=SysConfig::where(['key'=>'money_to_points'])->value('value');
                 $points=floor ($data['order_money']/$points_con);
-                PointsRecord::addRecord($data['user_id'],$points);
+                PointsRecord::addRecord($data['user_id'],$points,'购买商品');
                 $user=User::where('id',$data['user_id'])->find();
                 $user['points']+=$points;
                 $user->save();

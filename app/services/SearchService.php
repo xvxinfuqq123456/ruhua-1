@@ -30,7 +30,7 @@ class SearchService
             if (array_key_exists($name, $search)) {
                 $search[$name]=$search[$name]+$num;
             } else {
-                if(count($search)==50){
+                if(count($search)==20){
                     array_pop($search);
                 }
                 $search[$name]=$num*1;

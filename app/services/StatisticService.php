@@ -11,7 +11,6 @@ namespace app\services;
 use app\model\FxRecord;
 use app\model\Goods as GoodsModel;
 use app\model\Order as OrderModel;
-use app\model\PtOrder as PtOrderModel;
 use app\model\User as UserModel;
 
 class StatisticService
@@ -60,14 +59,14 @@ class StatisticService
      */
     public static function getCmsIndexData()
     {
-        $order=new OrderModel();
-        $user=new UserModel();
+        $order = new OrderModel();
+        $user = new UserModel();
         $shipment = $order->where(['state' => 0, 'payment_state' => 1, 'shipment_state' => 0])->field('count(order_id) as all_num')->find();
         $refund = $order->where(['state' => -1, 'payment_state' => 1])->field('count(order_id) as all_num')->find();
         $goods_stock = GoodsModel::getGoodsStock();
         $yesterday = $order->where(['state' => 1, 'payment_state' => 1])->whereDay('pay_time', 'yesterday')
             ->field('count(order_id) as yesterday_order,sum(order_money) as yesterday_money')->find();
-        $month_order= $order->where(['state' => 1, 'payment_state' => 1])->whereMonth('pay_time')
+        $month_order = $order->where(['state' => 1, 'payment_state' => 1])->whereMonth('pay_time')
             ->field('count(order_id) as month_order,sum(order_money) as month_money')->find();
         $today_user = $user->whereDay('create_time')->field('count(id) as all_user')->find();
         $month_user = $user->whereMonth('create_time')->field('count(id) as all_user')->find();
@@ -138,15 +137,11 @@ class StatisticService
             ->where('state', '>=', '1')
             ->whereMonth('pay_time', $time['time'])
             ->select();
-        if (app('system')->getValue('is_pt') == 1) {
-            $data['pt_order'] = PtOrderModel::where('payment_state', 1)
-                ->where('state', '>=', '1')
-                ->whereMonth('pay_time', $time['time'])
-                ->count();
-        }
         foreach ($order as $k => $v) {
             if ($v['activity_type'] == '限时优惠') {
                 $data['discount_order'] += 1;
+            } else if ($v['activity_type'] == '拼团活动') {
+                $data['pt_order'] += 1;
             } else {
                 $data['normal_order'] += 1;
             }
@@ -166,12 +161,6 @@ class StatisticService
             ->where('state', '>=', '1')
             ->whereMonth('pay_time', $time['time'])
             ->select();
-        if (app('system')->getValue('is_pt') == 1) {
-            $pt_order = PtOrderModel::where('payment_state', 1)
-                ->where('state', '>=', '1')
-                ->whereMonth('pay_time', $time['time'])
-                ->select();
-        }
         for ($i = 0; strtotime($time['time']) < strtotime($time['last_time']); $i++) {
             $data[$i]['day'] = $time['time'];
             $data[$i]['total_price'] = 0;
@@ -185,17 +174,6 @@ class StatisticService
                 if (strtotime($value['day']) == $day) {
                     $data[$key]['total_price'] += $v['goods_money'];
                     $data[$key]['total_order'] += 1;
-                }
-            }
-        }
-        if (app('system')->getValue('is_pt') == 1) {
-            foreach ($pt_order as $k => $v) {
-                $day = strtotime(date('Y-m-d', $v['pay_time']));
-                foreach ($data as $key => $value) {
-                    if (strtotime($value['day']) == $day) {
-                        $data[$key]['total_price'] += $v['goods_money'];
-                        $data[$key]['total_order'] += 1;
-                    }
                 }
             }
         }

@@ -25,6 +25,7 @@ class ProductValidate extends BaseValidate
         'stock' => 'require',  //库存
         'content' => 'min:0',  //商品详情
         'banner_imgs'=> 'min:0',  //商品详情图
+//        'video_id'=> 'min:0',  //视频id
         'delivery_id'=>'require', //物流快递模板ID
 
     ];

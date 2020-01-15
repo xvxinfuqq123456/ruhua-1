@@ -25,7 +25,6 @@ class CouponManage extends BaseController
             'full' => 'require|float',
             'reduce' => 'require|float',
             'name' => 'require|max:60',
-            'stock_type' => 'require|number',
             'status' => 'require',
         ];
         $post = input('post.');

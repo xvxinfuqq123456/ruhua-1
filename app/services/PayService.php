@@ -41,10 +41,9 @@ class PayService
         //进行库存量检测
         event('CheckStock',$this->orderID);
 
-//        $res = OrderService::checkOrderStock($this->orderID);
-//        if(!$res){
-//            throw new BaseException(['msg'=>'该商品已卖完']);
-//        }
+        //检测是否未拼团订单，并检测是否能参与拼团
+        event('CheckItem',$this->orderID);
+
         //不支付，自动更新为已支付状态；  这是自定义的假数据
         /*$data['out_trade_no'] = OrderModel::getOrderAttr($this->orderID,'order_num');
         $data['result_code'] = 'SUCCESS';

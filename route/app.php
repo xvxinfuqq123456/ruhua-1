@@ -12,8 +12,10 @@ use think\facade\Route;
 
 
 Route::get('', function (){
-    echo '如花商城系统  v1.20（免费版)';
+    echo '如花商城系统  v1.22（免费版)';
 });
+
+Route::get('api_check','install.Check/index');
 
 //系统安装
 Route::group('install', function () {
@@ -23,6 +25,13 @@ Route::group('install', function () {
     Route::post('create_data', 'install.Index/createData');
 });
 
+//定时任务
+Route::group('task', function () {
+    Route::get('refresh', 'common.Task/getRefresh');  //3小时定时任务
+    Route::get('order_task', 'common.Task/getOrderTask');  //关闭未支付订单、拼团失败订单定时任务
+    Route::get('check_order_task', 'common.Task/checkLoopTask');  //查看系统自动关闭订单运行状态
+    Route::get('loop_task', 'common.Task/getLoopTask');  //循环任务，关闭未支付订单、拼团失败订单
+});
 
 //微信授权获取token
 Route::group('auth', function () {
@@ -31,16 +40,20 @@ Route::group('auth', function () {
     Route::post('token_verify', 'auth.Auth/verifyToken');   //验证用户token
     Route::get('gzh_token', 'auth.Auth/getToken');   //异步接收公众号code,获取openid，返回token
     Route::post('upinfo', 'auth.Auth/xcx_upinfo');   //更新用户昵称、头像
+    Route::post('get_app_token', 'auth.Auth/getAppToken');   //app获取用户token
 });
 
 //公共
 Route::group('index', function () {
 
+
+
     Route::group('', function () {
+        Route::post('/get_code_img', 'common.Common/gitCodeImg');   //生成二维码
         Route::post('/upload/img', 'cms.Common/uploadImg');   //上传图片
         Route::post('/upload/img_id', 'cms.Common/uploadImgID');   //上传图片返还ID
         Route::post('/upload/down_img', 'cms.Common/downImg');   //下载图片
-        Route::get('get_refresh', 'common.Task/getRefresh');  //定时任务
+        Route::get('get_file', 'common.Common/getFile');  //获取文件
     });
 
     //用户
@@ -116,7 +129,7 @@ Route::group('category', function () {
         Route::post('add_category', 'cms.CategoryManage/addCategory');//添加广告
         Route::post('edit_category', 'cms.CategoryManage/editCategory');//修改广告
         Route::put('del_category', 'cms.CategoryManage/deleteCategory');//删除广告
-        Route::get('all_category', 'cms.CategoryManage/getCate_sort');//cms 获取所有分类并排好序，包括隐藏
+        Route::get('all_category', 'cms.CategoryManage/getCateSort');//cms 获取所有分类并排好序，包括隐藏
         Route::post('set_sort', 'cms.CategoryManage/setSort');//更新广告排序
     })->middleware('CheckCms');
 });
@@ -170,6 +183,7 @@ Route::group('group', function () {
         Route::put('del_group', 'cms.Group/deleteGroup');//删除文章
         Route::get('get_all_group', 'cms.Group/getAllGroup');//获取所有的分组
         Route::get('get_one_group', 'cms.Group/getOneGroup');//获取分组详情
+        Route::get('get_all_rule', 'cms.Group/getAllGroupRule');//获取分组详情
 
     })->middleware('CheckCms');
 });
@@ -192,12 +206,12 @@ Route::group('rate', function () {
 
     //管理员
     Route::group('admin', function () {
-        Route::post('add_rate', 'cms.RateManage/addRate');//添加评价
         Route::post('add_reply', 'cms.RateManage/addReply');//回复
         Route::put('del_rate', 'cms.RateManage/deleteRate');//删除评价
         Route::get('get_all_rate', 'cms.RateManage/getAllRate');//获取所有评价
     })->middleware('CheckCms');
 });
+
 
 //优惠券
 Route::group('coupon', function () {
@@ -227,12 +241,11 @@ Route::group('coupon', function () {
 Route::group('points', function () {
 
     Route::group('', function () {
-
     });
 
     //用户
     Route::group('user', function () {
-
+        Route::get('get_points', 'user.UserPoints/getPointsNum');//签到添加积分
     });
 
     //管理员
@@ -297,7 +310,7 @@ Route::group('order', function () {
         Route::post('/create_cart', 'common.Order/CreateCartOrder');//公众号下单
 
         Route::post('/second_pay', 'common.Pay/gzhPaySecond');   //公众号第二次支付
-        Route::post('/back/:ucid', 'common.Pay/gzh_back'); //公众号支付回调
+        Route::post('/back', 'common.Pay/gzh_back'); //公众号支付回调
 
         Route::post('/pay/pre_order', 'common.Pay/getPreOrder');//小程序支付
         Route::post('/pay/notify', 'common.Pay/receiveNotify');//小程序支付回调
@@ -333,10 +346,10 @@ Route::group('order', function () {
         Route::post('/get_order_one', 'cms.OrderManage/GetOrderOne'); //获取指定订单详细--CMS
         Route::post('/edit_courier', 'cms.OrderManage/editCourier'); //更新订单配送信息
         Route::post('/edit_remark', 'cms.OrderManage/editRemark'); //添加订单备注信息
-//        Route::post('/edit_price', 'cms.OrderManage/edit_price'); //修改订单价格
-        Route::get('/get_tui_all', 'cms.OrderManage/getTuiAll'); //cms 获取所有退款信息
-//        Route::post('/tui_money', 'cms.OrderManage/TuiMoney'); //微信退款
-        Route::post('/tui_bohui', 'cms.OrderManage/TuiBoHui'); //退款申请驳回
+        Route::post('/edit_price', 'cms.OrderManage/edit_price'); //修改订单价格
+        Route::get('/get_tui_all', 'cms.TuiManage/getTuiAll'); //cms 获取所有退款信息
+        Route::post('/tui_money', 'cms.TuiManage/TuiMoney'); //微信退款
+        Route::post('/tui_bohui', 'cms.TuiManage/TuiBoHui'); //退款申请驳回
         Route::put('/update', 'cms.Common/upValue');   //更新某模型下的某布尔字段,如上下级架
     })->middleware('CheckCms');
 });
@@ -386,7 +399,9 @@ Route::group('product', function () {
 Route::group('user', function () {
 
     Route::group('', function () {
+        Route::put('/login', 'user.User/userLogin'); //模拟用户登录
         Route::get('/info', 'user.User/getInfo'); //获取用户基础信息
+
     });
 
     //管理员

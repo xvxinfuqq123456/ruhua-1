@@ -79,6 +79,7 @@ class WxPayNotify extends WxPayNotifyReply
 		$msg = "OK";
 		$result = $this->NotifyProcess($data, $this->config, $msg);
 		
+        Log::error('公众号回调结束');
 		if($result == true){
 			$this->SetReturn_code("SUCCESS");
 			$this->SetReturn_msg("OK");

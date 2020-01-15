@@ -10,6 +10,7 @@ namespace subscribes;
 
 use app\model\Goods as GoodsModel;
 use app\model\Order as OrderModel;
+use app\model\PtItem;
 use app\services\DeliveryMessage;
 use app\services\GzhDeliveryMessage;
 
@@ -45,6 +46,20 @@ class OrderSubscribes
     {
         $data=$event['order_goods'];
         GoodsModel::editStock($data);
+    }
+
+    /**
+     * 检测是否开启拼团，能否参加拼团
+     * @param $event
+     * @return int
+     * @throws OrderException
+     */
+    public function onCheckItem($event)
+    {
+        if(app('system')->getValue('is_pt') == 1) {
+            PtItem::checkItemUser($event);
+        }
+
     }
 
     /**

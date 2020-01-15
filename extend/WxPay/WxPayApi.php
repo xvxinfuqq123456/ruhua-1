@@ -433,16 +433,16 @@ class WxPayApi
      */
     public static function notify($callback, &$msg)
     {
+    	Log::error('回调notify');
         //$xml = $GLOBALS['HTTP_RAW_POST_DATA'];    //该方法有时无返回值，改用下面方法
         $xml = file_get_contents("php://input");
         //如果返回成功则验证签名
         try { 
-            $result = WxPayResults::Init($xml); 
+            $result = WxPayResults::Init($xml);
         } catch (WxPayException $e){
             $msg = $e->errorMessage();
             return false;
-        }
-
+        } 
         return call_user_func($callback, $result);
     }
 

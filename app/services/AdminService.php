@@ -78,8 +78,6 @@ class AdminService extends TokenService
         }
         $cachedValue = $this->setWxCache($user);//仅组合
         $res['token'] = $this->saveCache($cachedValue);
-        $oauth = GroupModel::where('id', $user->group_id)->value('oauth');
-        $res['oauth'] = explode(',', $oauth);
         return app('json')->success($res);
 //        return json($res);
     }

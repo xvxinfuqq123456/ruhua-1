@@ -10,6 +10,7 @@ namespace app\controller\cms;
 
 
 use app\model\Group as GroupModel;
+use app\model\GroupRule as GroupRuleModel;
 use app\validate\IDPostiveInt;
 use bases\BaseController;
 
@@ -23,7 +24,7 @@ class Group extends BaseController
     {
         $rule = [
             'name' => 'require|max:255',
-            'res' => 'require'
+            'rule_ids' => 'require'
         ];
         $post = input('post.');
         $this->validate($post, $rule);
@@ -39,10 +40,13 @@ class Group extends BaseController
         $rule = [
             'id' => 'require|number',
             'name' => 'require|max:255',
-            'res' => 'require',
+            'rule_ids' => 'require',
         ];
         $post = input('post.');
-        $this->validate($post,$rule);
+        $this->validate($post, $rule);
+        if ($post['id'] == 1) {
+            return app('json')->fail('超级管理组不能');
+        }
         return GroupModel::editGroup($post);
     }
 
@@ -54,10 +58,13 @@ class Group extends BaseController
     public function deleteGroup($id)
     {
         (new IDPostiveInt)->goCheck();
+        if ($id == 1) {
+            return app('json')->fail('超级管理组不能删除');
+        }
         $result = GroupModel::where('id', $id)->delete();
-        if($result){
+        if ($result) {
             return app('json')->success();
-        }else{
+        } else {
             return app('json')->fail();
         }
     }
@@ -68,7 +75,10 @@ class Group extends BaseController
      */
     public function getAllGroup()
     {
-        $res = GroupModel::field('id,name,oauth', true)->select();
+        $res = GroupModel::field('id,name,rule', true)->select();
+        foreach ($res as $k=>$v){
+            $res[$k]['rule']=explode(',',$v['rule']);
+        }
         return app('json')->success($res);
     }
 
@@ -84,7 +94,17 @@ class Group extends BaseController
         if (!$data) {
             return app('json')->fail();
         }
-        $data['oauth'] = explode(',', $data['oauth']);
         return app('json')->success($data);
     }
+
+    /**
+     * 获取所有的分组规则
+     * @return null|\think\Collection
+     */
+    public function getAllGroupRule()
+    {
+        $res = GroupRuleModel::select();
+        return app('json')->success($res);
+    }
+
 }

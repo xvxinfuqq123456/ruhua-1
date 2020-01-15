@@ -1,6 +1,6 @@
 <?php
 namespace WxPay;
-use app\api\model\Order;
+use app\model\Order;
 use think\facade\Log;
 /**
  * 2015-06-29 修复签名问题
@@ -87,13 +87,13 @@ class WxPayData
         //禁止引用外部xml实体
         libxml_disable_entity_loader(true);
         $this->values = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);  
-      if(session('notify')){ 
+      /*if(session('notify')){ 
          $out_trade_no=$this->values['out_trade_no'];
          $uniacid=Order::where('order_num',$out_trade_no)->value('uniacid');
         if($uniacid) { 
             session('wx_ucid', $uniacid);
         }
-      } 
+      } */
         return $this->values;
     }
 

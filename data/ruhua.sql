@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 127.0.0.1
--- 生成日期： 2019-12-17 01:53:27
+-- 生成日期： 2020-01-07 10:47:51
 -- 服务器版本： 10.1.37-MariaDB
 -- PHP 版本： 7.3.1
 
@@ -33,10 +33,10 @@ CREATE TABLE `rh_admin` (
   `username` varchar(40) NOT NULL COMMENT '用户名',
   `password` varchar(60) NOT NULL,
   `group_id` tinyint(4) NOT NULL COMMENT '管理组ID',
-  `ip` varchar(30) NOT NULL,
+  `ip` varchar(30) DEFAULT NULL,
   `state` int(1) NOT NULL DEFAULT '0' COMMENT '是否禁用',
-  `description` varchar(200) NOT NULL COMMENT '描述',
-  `login_time` int(11) NOT NULL,
+  `description` varchar(200) DEFAULT NULL COMMENT '描述',
+  `login_time` int(11) NOT NULL DEFAULT '0',
   `create_time` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='管理员表';
 
@@ -50,11 +50,11 @@ CREATE TABLE `rh_article` (
   `id` int(10) UNSIGNED NOT NULL COMMENT '文章编号',
   `type` int(11) NOT NULL COMMENT '0活动公告，1独立文章，3公告',
   `title` varchar(50) NOT NULL COMMENT '文章标题',
-  `summary` varchar(140) NOT NULL DEFAULT '' COMMENT '文章摘要',
+  `summary` varchar(140) DEFAULT '' COMMENT '文章摘要',
   `content` text NOT NULL COMMENT '文章正文',
-  `image` varchar(255) NOT NULL DEFAULT '' COMMENT '文章标题图片',
+  `image` varchar(255) DEFAULT '' COMMENT '文章标题图片',
   `is_hidden` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否显示 1 显示 0 不显示',
-  `author` varchar(50) NOT NULL COMMENT '发布者用户名 ',
+  `author` varchar(50) DEFAULT NULL COMMENT '发布者用户名 ',
   `create_time` int(11) DEFAULT '0' COMMENT '文章发布时间'
 ) ENGINE=InnoDB AVG_ROW_LENGTH=6553 DEFAULT CHARSET=utf8 COMMENT='CMS文章表';
 
@@ -90,7 +90,7 @@ CREATE TABLE `rh_banner_item` (
   `img_id` int(11) NOT NULL COMMENT '外键，关联image表',
   `key_word` varchar(100) NOT NULL COMMENT '执行关键字，根据不同的type含义不同',
   `type` varchar(255) NOT NULL COMMENT '跳转类型',
-  `jump_id` int(11) NOT NULL,
+  `jump_id` int(11) NOT NULL DEFAULT '0',
   `delete_time` int(11) DEFAULT NULL,
   `banner_id` int(11) NOT NULL COMMENT '外键，关联banner表',
   `is_visible` int(11) NOT NULL DEFAULT '1' COMMENT '是否显示  1 显示 0 不显示',
@@ -139,7 +139,7 @@ CREATE TABLE `rh_coupon` (
   `day` int(11) DEFAULT NULL COMMENT '使用时间',
   `create_time` int(11) NOT NULL COMMENT '创建时间',
   `update_time` int(11) NOT NULL COMMENT '修改时间',
-  `delete_time` int(11) NOT NULL COMMENT '删除时间'
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='优惠券表';
 
 -- --------------------------------------------------------
@@ -218,7 +218,7 @@ CREATE TABLE `rh_goods` (
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT '1' COMMENT '店铺id',
   `category_id` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '商品分类id',
   `market_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '市场价',
-  `price` decimal(10,2) DEFAULT '0.00' COMMENT '拼团价格',
+  `price` decimal(10,2) DEFAULT '0.00' COMMENT '价格',
   `vip_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT 'vip价格',
   `cost_price` decimal(19,2) NOT NULL DEFAULT '0.00' COMMENT '成本价',
   `delivery_id` int(11) NOT NULL DEFAULT '0' COMMENT '售卖区域id 物流模板id  ns_order_shipping_fee 表id',
@@ -228,6 +228,7 @@ CREATE TABLE `rh_goods` (
   `star` tinyint(3) UNSIGNED NOT NULL DEFAULT '5' COMMENT '好评星级',
   `evaluates` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '评价数',
   `img_id` int(11) NOT NULL DEFAULT '0' COMMENT '商品主图',
+  `video_id` int(11) NOT NULL DEFAULT '0' COMMENT '视频Id',
   `keywords` varchar(255) DEFAULT '' COMMENT '商品关键词',
   `description` varchar(255) NOT NULL DEFAULT '' COMMENT '商品简介，促销语',
   `content` text NOT NULL COMMENT '商品详情',
@@ -262,7 +263,7 @@ CREATE TABLE `rh_goods_sku` (
 CREATE TABLE `rh_group` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `oauth` varchar(2000) NOT NULL,
+  `rule` text NOT NULL COMMENT '规则数组',
   `update_time` int(11) NOT NULL,
   `create_time` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -271,8 +272,59 @@ CREATE TABLE `rh_group` (
 -- 转存表中的数据 `rh_group`
 --
 
-INSERT INTO `rh_group` (`id`, `name`, `oauth`, `update_time`, `create_time`) VALUES
-(1, '超级管理员', 'all,product,product_list,product_add,product_del,product_category,order_cai,order_list,order_set,caiwu_list,pay,member,member_list,cset,ad_list,article_list,site_set,group_list', 0, 0);
+INSERT INTO `rh_group` (`id`, `name`, `rule`, `update_time`, `create_time`) VALUES
+(1, '超级管理员', '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33', 0, 0);
+
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `rh_group_rule`
+--
+
+CREATE TABLE `rh_group_rule` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `title` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- 转存表中的数据 `rh_group_rule`
+--
+
+INSERT INTO `rh_group_rule` (`id`, `name`, `title`) VALUES
+(1, 'AdminManage,Backup,Group,System', '管理员'),
+(2, 'ProductManage/addProduct', '添加商品'),
+(3, 'ProductManage/deleteProduct', '删除商品'),
+(4, 'ProductManage/editProduct', '修改商品'),
+(5, 'ProductManage/getProduct', '获取商品'),
+(6, 'CategoryManage/addCategory', '增加分类'),
+(7, 'CategoryManage/deleteCategory', '删除分类'),
+(8, 'CategoryManage/editCategory', '修改分类'),
+(9, 'CategoryManage/getCateSort', '获取分类'),
+(10, 'OrderManage/deleteOrder', '删除订单'),
+(11, 'OrderManage/getOrderAll', '获取订单列表'),
+(12, 'OrderManage/editCourier', '订单发货'),
+(13, 'ArticleManage/addArticle', '添加文章'),
+(14, 'ArticleManage/editArticle', '修改文章'),
+(15, 'ArticleManage/deleteArticle', '删除文章'),
+(16, 'ArticleManage/adminGetAllArticle', '获取文章'),
+(17, 'BannerManage/addBanner', '添加广告'),
+(18, 'BannerManage/deleteBanner', '删除广告'),
+(19, 'BannerManage/editBanner', '修改广告'),
+(20, 'BannerManage/adminAllBanner', '获取广告'),
+(21, 'NavManage/addNav', '添加导航'),
+(22, 'NavManage/editNav', '修改导航'),
+(23, 'NavManage/deleteNav', '删除导航'),
+(24, 'NavManage/getNav', '获取导航'),
+(25, 'RateManage', '评价管理'),
+(26, 'TuiManage', '退款管理'),
+(27, 'Common\\upValue', '更新不同模型的布尔字段'),
+(28, 'CouponManage', '优惠券管理'),
+(29, 'FxManage', '分销管理'),
+(30, 'Delivery', '运费模板管理'),
+(31, 'DiscountManage', '限时折扣管理'),
+(32, 'PtManage', '拼团管理'),
+(33, 'PointsPlayManage', '积分活动管理');
 
 -- --------------------------------------------------------
 
@@ -317,7 +369,7 @@ CREATE TABLE `rh_nav` (
   `img_id` varchar(255) NOT NULL COMMENT '图片ID',
   `url` varchar(255) NOT NULL COMMENT '转跳路径',
   `url_name` varchar(20) NOT NULL COMMENT '转跳名字',
-  `category_id` int(11) NOT NULL COMMENT '转跳分类ID',
+  `category_id` int(11) NOT NULL DEFAULT '0' COMMENT '转跳分类ID',
   `is_visible` int(11) NOT NULL COMMENT '	是否显示 1 显示 0 不显示	',
   `sort` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='导航栏';
@@ -331,9 +383,12 @@ CREATE TABLE `rh_nav` (
 CREATE TABLE `rh_order` (
   `order_id` int(11) NOT NULL,
   `order_num` varchar(40) NOT NULL COMMENT '订单编号',
+  `item_id` int(11) NOT NULL DEFAULT '0' COMMENT '拼团队伍id',
+  `is_captain` int(11) NOT NULL DEFAULT '0' COMMENT '是否为队长',
   `user_id` int(11) DEFAULT NULL,
   `type` int(11) NOT NULL DEFAULT '0' COMMENT '0普通1虚拟',
   `state` int(11) NOT NULL DEFAULT '0' COMMENT '0未完成 1已完成 2已评价 -1退款中 -2已退款-3关闭订单',
+  `pt_state` int(11) NOT NULL DEFAULT '0' COMMENT '拼团状态0普通订单-1拼团失败1拼团中2拼团成功',
   `payment_state` int(11) NOT NULL DEFAULT '0' COMMENT '支付状态 0 1',
   `shipment_state` int(11) NOT NULL DEFAULT '0' COMMENT '运输（验证）状态  0待发货 1已发货 2已收货',
   `rate_id` int(11) DEFAULT '0',
@@ -343,13 +398,14 @@ CREATE TABLE `rh_order` (
   `payment_type` varchar(60) DEFAULT NULL COMMENT '支付方式',
   `shipping_money` decimal(10,2) NOT NULL COMMENT '运费',
   `goods_money` decimal(10,2) NOT NULL COMMENT '商品总价',
-  `coupon_money` decimal(10,2) NOT NULL COMMENT '优惠券价格',
+  `coupon_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '优惠券价格',
   `edit_money` decimal(10,2) DEFAULT '0.00',
   `order_money` decimal(10,2) NOT NULL COMMENT '订单总价',
   `user_ip` varchar(40) DEFAULT NULL,
   `goods_picture` varchar(400) DEFAULT NULL,
   `message` varchar(300) DEFAULT NULL COMMENT '备注',
   `activity_type` varchar(255) DEFAULT NULL COMMENT '参加活动的名称',
+  `is_captain_sign` int(11) NOT NULL DEFAULT '0' COMMENT '是否为队长签收',
   `receiver_name` varchar(60) NOT NULL COMMENT '收货人',
   `receiver_mobile` varchar(60) NOT NULL COMMENT '收货人手机',
   `receiver_city` varchar(60) NOT NULL,
@@ -402,11 +458,11 @@ CREATE TABLE `rh_order_goods` (
 CREATE TABLE `rh_order_log` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
-  `pt_order_id` int(11) NOT NULL,
   `type_name` varchar(255) NOT NULL,
   `content` varchar(800) NOT NULL,
-  `operator` varchar(255) NOT NULL,
-  `ip` varchar(255) NOT NULL,
+  `operator` varchar(255) DEFAULT NULL,
+  `ip` varchar(255) DEFAULT NULL,
+  `wx_refund` varchar(50) DEFAULT NULL COMMENT '微信退款id',
   `create_time` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='订单日志表';
 
@@ -428,7 +484,7 @@ CREATE TABLE `rh_points_record` (
   `clerk_type` tinyint(3) UNSIGNED NOT NULL DEFAULT '1',
   `create_time` int(10) NOT NULL,
   `remark` varchar(200) NOT NULL DEFAULT '',
-  `real_uniacid` int(11) NOT NULL
+  `real_uniacid` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='积分记录表';
 
 -- --------------------------------------------------------
@@ -440,7 +496,6 @@ CREATE TABLE `rh_points_record` (
 CREATE TABLE `rh_rate` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
-  `pt_order_id` int(11) NOT NULL DEFAULT '0' COMMENT '拼团订单id',
   `goods_id` int(11) DEFAULT NULL,
   `rate` int(11) NOT NULL,
   `content` varchar(800) NOT NULL,
@@ -4274,12 +4329,12 @@ CREATE TABLE `rh_sys_config` (
 INSERT INTO `rh_sys_config` (`id`, `key`, `value`, `desc`, `type`, `switch`, `update_time`, `create_time`) VALUES
 (1, 'api_url', '', '入口位置', 1, 0, 1576475519, 1576475519),
 (2, 'web_name', '', '公众号名称', 1, 0, 1576475519, 1576475519),
-(3, 'gzh_appid', '', '公众号appid', 2, 0, 1576475450, 1576475450),
-(4, 'gzh_secret', '', '公众号秘钥', 2, 0, 1576475450, 1576475450),
-(5, 'wx_app_id', '', '小程序appid', 2, 0, 1576475450, 1576475450),
-(6, 'wx_app_secret', '', '小程序秘钥', 2, 0, 1576475450, 1576475450),
-(7, 'pay_num', '', '商户id', 2, 0, 1576475450, 1576475450),
-(8, 'pay_key', '', '商户key', 2, 0, 1576475450, 1576475450),
+(3, 'gzh_appid', '', '公众号appid', 2, 0, 1577428982, 1577428982),
+(4, 'gzh_secret', '', '公众号秘钥', 2, 0, 1577428982, 1577428982),
+(5, 'wx_app_id', '', '小程序appid', 2, 0, 1577428982, 1577428982),
+(6, 'wx_app_secret', '', '小程序秘钥', 2, 0, 1577428982, 1577428982),
+(7, 'pay_num', '', '商户id', 2, 0, 1577428982, 1577428982),
+(8, 'pay_key', '', '商户key', 2, 0, 1577428982, 1577428982),
 (9, 'wx_token_expire', '', 'token有效期', 1, 0, 1576475519, 1576475519),
 (10, 'accept_time', '', '自动收货时间', 1, 0, 1576475519, 1576475519),
 (11, 'gzh_share_title', '', '分享标题', 1, 0, 1576475519, 1576475519),
@@ -4287,18 +4342,17 @@ INSERT INTO `rh_sys_config` (`id`, `key`, `value`, `desc`, `type`, `switch`, `up
 (13, 'ThemeColor', '', '主题颜色', 1, 0, 1576475519, 1576475519),
 (14, 'ThemeList', '', '商品列表', 1, 0, 1576475519, 1576475519),
 (15, 'ThemeBox', '', '商品详情', 1, 0, 1576475519, 1576475519),
-(20, 'is_cart', '1', '购物车', 1, 1, 1576475519, 1576475519),
-(22, 'is_new', '1', '新品推荐', 1, 1, 1576475519, 1576475519),
-(24, 'is_serve', '1', '客服', 1, 1, 1576475519, 1576475519),
-(25, 'kd_appid', '', '快递ID', 1, 0, 1576475519, 1576475519),
-(26, 'kd_key', '', '快递Key', 1, 0, 1576475519, 1576475519),
+(20, 'is_cart', '', '购物车', 1, 1, 1576475519, 1576475519),
+(22, 'is_new', '', '新品推荐', 1, 1, 1576475519, 1576475519),
+(24, 'is_serve', '', '客服', 1, 1, 1576475519, 1576475519),
 (27, 'admin_tmp_id', '', '通知管理员模板ID', 1, 0, 1576475519, 1576475519),
 (28, 'user_tmp_id', '', '通知用户模板ID', 1, 0, 1576475519, 1576475519),
-(29, 'exchang_points', '0', '购物获得积分', 1, 1, 1576475519, 1576475519),
-(30, 'use_points', '0', '使用积分购物', 1, 1, 1576475519, 1576475519),
+(29, 'exchang_points', '', '购物获得积分', 1, 1, 1576475519, 1576475519),
+(30, 'use_points', '', '使用积分购物', 1, 1, 1576475519, 1576475519),
 (31, 'points_to_money', '', '积分与金额的比例 金额：积分=1:100', 1, 0, 1576475519, 1576475519),
-(32, 'money_to_points', '', '金额与积分的比例 金额：积分=1:1', 1, 0, NULL, NULL),
-(38, 'appcode', '', '快递code', 1, 0, 1576475519, 1576475519);
+(32, 'money_to_points', '', '金额与积分的比例 金额：积分=1:1', NULL, 0, NULL, NULL),
+(38, 'appcode', '', '快递code', 1, 0, 1576475519, 1576475519),
+(43, 'code_url', '', '二维码链接', 1, 0, 1576475519, 1576475519);
 
 -- --------------------------------------------------------
 
@@ -4335,18 +4389,18 @@ INSERT INTO `rh_template` (`id`, `temp_key`, `temp_name`, `content`, `temp_id`, 
 CREATE TABLE `rh_tui` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
-  `pt_order_id` int(11) NOT NULL COMMENT '拼团订单id',
+  `goods_id` int(11) NOT NULL DEFAULT '0',
   `nickname` varchar(255) NOT NULL,
-  `shop_name` varchar(255) NOT NULL,
+  `shop_name` varchar(255) DEFAULT NULL,
   `order_num` varchar(40) NOT NULL,
   `money` decimal(10,2) NOT NULL,
   `message` varchar(255) NOT NULL,
   `because` varchar(255) DEFAULT NULL,
   `ip` varchar(100) NOT NULL,
-  `status` int(1) NOT NULL,
-  `aid` int(11) NOT NULL,
-  `wx_id` varchar(50) NOT NULL,
-  `remark` varchar(255) NOT NULL,
+  `status` int(1) NOT NULL DEFAULT '0',
+  `aid` int(11) NOT NULL DEFAULT '0',
+  `wx_id` varchar(50) DEFAULT NULL,
+  `remark` varchar(255) DEFAULT NULL,
   `create_time` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='退货管理表';
 
@@ -4360,14 +4414,17 @@ CREATE TABLE `rh_user` (
   `id` int(11) NOT NULL,
   `openid` varchar(50) CHARACTER SET utf8 DEFAULT NULL COMMENT '小程序openid',
   `openid_gzh` varchar(70) DEFAULT NULL COMMENT '公众号openid',
+  `openid_app` varchar(100) DEFAULT NULL,
   `unionid` varchar(70) DEFAULT NULL,
   `nickname` varchar(60) DEFAULT NULL,
   `headpic` varchar(500) DEFAULT NULL,
   `mobile` varchar(20) DEFAULT NULL,
   `start` int(11) DEFAULT NULL,
-  `points` int(11) DEFAULT NULL COMMENT '积分',
+  `points` int(11) NOT NULL DEFAULT '0' COMMENT '积分',
   `create_time` int(11) DEFAULT NULL COMMENT '注册时间',
   `web_auth_id` int(11) NOT NULL DEFAULT '0' COMMENT '前端管理权限',
+  `sign_day` int(11) NOT NULL DEFAULT '0' COMMENT '连续签到天数',
+  `sign_time` int(11) NOT NULL COMMENT '上次签到的时间',
   `update_time` int(11) DEFAULT NULL,
   `is_visible` int(1) NOT NULL DEFAULT '1' COMMENT '1显示0隐藏'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -4412,6 +4469,21 @@ CREATE TABLE `rh_user_coupon` (
   `status` int(11) DEFAULT '0' COMMENT '使用状态(0未使用1已使用2已完成3已过期',
   `create_time` int(11) NOT NULL COMMENT '领取时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户优惠券表';
+
+
+DROP TABLE IF EXISTS `rh_video`;
+CREATE TABLE `rh_video` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `url` varchar(255) NOT NULL COMMENT '图片路径',
+  `from` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1 来自本地，2 来自公网',
+  `use_name` varchar(80) NOT NULL,
+  `is_visible` int(11) NOT NULL DEFAULT '1' COMMENT '是否能显示1能0不能',
+  `description` varchar(50) DEFAULT NULL COMMENT '描述字段',
+  `delete_time` int(11) DEFAULT NULL,
+  `update_time` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='视频表';
+
 
 --
 -- 转储表的索引
@@ -4489,6 +4561,12 @@ ALTER TABLE `rh_goods_sku`
 -- 表的索引 `rh_group`
 --
 ALTER TABLE `rh_group`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- 表的索引 `rh_group_rule`
+--
+ALTER TABLE `rh_group_rule`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -4633,13 +4711,13 @@ ALTER TABLE `rh_coupon`
 -- 使用表AUTO_INCREMENT `rh_delivery`
 --
 ALTER TABLE `rh_delivery`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- 使用表AUTO_INCREMENT `rh_delivery_rule`
 --
 ALTER TABLE `rh_delivery_rule`
-  MODIFY `rule_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '规则id', AUTO_INCREMENT=4;
+  MODIFY `rule_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '规则id', AUTO_INCREMENT=7;
 
 --
 -- 使用表AUTO_INCREMENT `rh_favorites`
@@ -4663,7 +4741,13 @@ ALTER TABLE `rh_goods_sku`
 -- 使用表AUTO_INCREMENT `rh_group`
 --
 ALTER TABLE `rh_group`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- 使用表AUTO_INCREMENT `rh_group_rule`
+--
+ALTER TABLE `rh_group_rule`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- 使用表AUTO_INCREMENT `rh_image`
@@ -4729,7 +4813,7 @@ ALTER TABLE `rh_sys_backup`
 -- 使用表AUTO_INCREMENT `rh_sys_config`
 --
 ALTER TABLE `rh_sys_config`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- 使用表AUTO_INCREMENT `rh_template`

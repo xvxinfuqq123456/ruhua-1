@@ -208,10 +208,9 @@ return [
                 throw new BaseException(['msg' => '创建安装鉴定文件失败，请检查目录权限']);
             }
 
-            (new QrcodeServer)->getCode($_SERVER['HTTP_HOST'].'/h5/index.html'); 
+            (new QrcodeServer)->getCode($_SERVER['HTTP_HOST'].'/h5/index.html');
             return $res['code'] = 1;
         }
-
     }
 }
 

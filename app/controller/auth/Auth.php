@@ -5,6 +5,8 @@ namespace app\controller\auth;
 
 use exceptions\TokenException;
 use app\model\User as UserModel;
+use think\facade\Log;
+use WxCode\demoWxCode;
 
 class Auth
 {
@@ -61,11 +63,23 @@ class Auth
         return json($data);
     }
 
-    public function xcx_upinfo($nickname, $headpic)
+    public function xcx_upinfo($nickname, $headpic, $keys, $iv)
     {
         $uid = Token::getCurrentUid();
-        $nickname=base64_encode($nickname);
-        UserModel::where('id', $uid)->update(['nickname' => $nickname, 'headpic' => $headpic]);
+        $session_key = Token::getCurrentTokenVar('session_key');
+        $nickname = base64_encode($nickname);
+        $user = UserModel::where('id', $uid)->find();
+        if (!$user['unionid']) {
+            $unionid = (new demoWxCode())->getUnionId($keys, $iv, $session_key);
+            if ($unionid < 0) {
+            }else{
+                $data['unionid'] = $unionid;
+            }
+
+        }
+        $data['nickname'] = $nickname;
+        $data['headpic'] = $headpic;
+        $user->save($data);
     }
 
     /********************  微信 + 小程序 共用  ************************/
@@ -78,6 +92,15 @@ class Auth
         $valid = Token::verifyToken($token);
         $arr = ['isValid' => $valid];
         return json($arr);
+    }
+
+    /********************  app  ************************/
+    public function getAppToken($authResult)
+    {
+        $usertoken = new AppToken();
+        $token = $usertoken->getToken($authResult);
+        $data = ['token' => $token];
+        return json($data);
     }
 
 }

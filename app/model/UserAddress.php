@@ -11,6 +11,7 @@ namespace app\model;
 
 use bases\BaseModel;
 use exceptions\BaseException;
+use exceptions\OrderException;
 use think\facade\Db;
 use think\facade\Log;
 use think\Request;
@@ -116,7 +117,7 @@ class UserAddress extends BaseModel
         $data = [];
         $address = self::where('user_id', $uid)->where('is_default', 1)->find();
         if (!$address) {
-            throw new BaseException(['msg' => '地址错误']);
+            throw new OrderException(['msg' => '地址错误']);
         }
         $data['receiver_name'] = $address['name'];
         $data['receiver_mobile'] = $address['mobile'];

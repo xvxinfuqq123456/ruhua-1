@@ -51,6 +51,7 @@ class Common extends BaseController
         return CommonServices::uploadImg($use, $back, 0, $cid);
     }
 
+
     /**
      * 下载图片
      * @param  $url

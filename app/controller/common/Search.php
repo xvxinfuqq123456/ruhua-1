@@ -22,8 +22,11 @@ class Search extends BaseController
      */
     public function searchGoods($name)
     {
+        $name=trim($name);
         $data=GoodsModel::getProductByName($name);
-        SearchService::setSearchCache($name);
+        if(strlen($name)<6){
+            SearchService::setSearchCache($name);
+        }
         return app('json')->success($data);
     }
 
@@ -45,6 +48,7 @@ class Search extends BaseController
     public function addSearchGoods($name,$num=1){
         $post=input('post.');
         $this->validate($post,['name'=>'require','num'=>'require|number']);
+        $name=trim($name);
         SearchService::setSearchCache($name,$num);
         return app('json')->success();
     }

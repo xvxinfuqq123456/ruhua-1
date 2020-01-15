@@ -46,7 +46,7 @@ class UserCoupon extends BaseModel
            return app('json')->fail('该优惠券只能领取一次');
         } else if ($coupon['status'] == 2 && $userCoupon) {
             if ($userCoupon['status'] != 2 && $userCoupon['status'] != 3) {
-                return  app('json')->fail('还有未使用的优惠券');
+                return  app('json')->fail('已领取');
             }
         }
         $data['user_id'] = $uid;

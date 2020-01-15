@@ -29,6 +29,12 @@ class Goods extends BaseModel
         return $this->belongsTo('Image', 'img_id', 'id');
     }
 
+    //关联视频
+    public function video()
+    {
+        return $this->belongsTo('Video', 'video_id', 'id');
+    }
+
     //关联评价
     public function rate()
     {
@@ -62,6 +68,12 @@ class Goods extends BaseModel
     public function ptGoods()
     {
         return $this->hasOne('PtGoods', 'goods_id', 'goods_id');
+    }
+
+    //拼团
+    public function fxGoods()
+    {
+        return $this->hasOne('FxGoods', 'goods_id', 'goods_id');
     }
 
     /**
@@ -191,7 +203,7 @@ class Goods extends BaseModel
         if (app('system')->getValue('is_pt') == 1) {
             $pt = PtGoods::column('goods_id');
         }
-        $res = Goods::with(['imgs'])->field('goods_id,img_id,price,goods_name')->select();
+        $res = Goods::with(['imgs','video'])->field('goods_id,img_id,price,goods_name')->select();
         foreach ($res->toArray() as $k => $v) {
             if (!in_array($v['goods_id'], $discount) && !in_array($v['goods_id'], $pt)) {
                 array_push($arr, $v);
@@ -207,7 +219,7 @@ class Goods extends BaseModel
      */
     public static function getProduct($id)
     {
-        $res = self::with(['imgs', 'sku', 'delivery'])->where('goods_id', $id)->find();
+        $res = self::with(['imgs','video','sku', 'delivery'])->where('goods_id', $id)->find();
         $url = [];
         $list = [];
         if (!empty($res['banner_imgs'])) {
@@ -245,9 +257,9 @@ class Goods extends BaseModel
         }
         if (app('system')->getValue('is_discount') == 1) {
             $res['discount'] = DiscountGoods::getDiscountGoods($id);
-//            if (!$res['discount']) {
-//                unset($res['discount']);
-//            }
+        }
+        if (app('system')->getValue('is_pt') == 1) {
+            $res['pt'] = PtGoods::getPtGoods($id);
         }
         return app('json')->success($res);
     }
@@ -261,13 +273,13 @@ class Goods extends BaseModel
     {
         $where['state'] = 1;
         if ($type == 'new') {
-            $data = self::with('imgs')->where('is_new', 1)->where($where)->order('sort desc')->select();
+            $data = self::with(['imgs','video'])->where('is_new', 1)->where($where)->order('sort desc')->select();
         } else if ($type == 'hot') {
-            $data = self::with('imgs')->where('is_hot', 1)->where($where)->order('sort desc')->select();
+            $data = self::with(['imgs','video'])->where('is_hot', 1)->where($where)->order('sort desc')->select();
         } else if ($type == 'recommend') {
-            $data = self::with('imgs')->where('is_recommend', 1)->where($where)->order('sort desc')->select();
+            $data = self::with(['imgs','video'])->where('is_recommend', 1)->where($where)->order('sort desc')->select();
         } else {
-            $data = self::with('imgs')->where($where)->order('sort desc')->select();
+            $data = self::with(['imgs','video'])->where($where)->order('sort desc')->select();
         }
         if (!$data || count($data) < 1) {
             return;//throw new BaseException(['msg'=>'获取最新商品失败或无数据']);
@@ -275,9 +287,11 @@ class Goods extends BaseModel
         if (app('system')->getValue('is_discount') == 1) {
             foreach ($data as $k => $v) {
                 $data[$k]['discount'] = DiscountGoods::getDiscountGoods($v['goods_id']);
-//                if (!$data[$k]['discount']) {
-//                    unset($data[$k]['discount']);
-//                }
+            }
+        }
+        if (app('system')->getValue('is_pt') == 1) {
+            foreach ($data as $k => $v) {
+                $data[$k]['pt'] = PtGoods::getPtGoods($v['goods_id']);
             }
         }
         return $data;
@@ -308,7 +322,7 @@ class Goods extends BaseModel
      */
     public static function getShopID($id)
     {
-        $data = self::with('imgs')->where('shop_id', $id)->where('state', 1)->select();
+        $data = self::with(['imgs','video'])->where('shop_id', $id)->where('state', 1)->select();
         if (!$data || count($data) < 1) {
             throw new BaseException(['msg' => '获取店铺商品失败或无数据']);
         }
@@ -325,10 +339,10 @@ class Goods extends BaseModel
     public static function getProductByPage($key = '')
     {
         if (!empty($key)) {
-            $data = self::with('imgs')->where(['state' => 1])->where('goods_name', 'like', '%' . $key . '%')
+            $data = self::with(['imgs','video'])->where(['state' => 1])->where('goods_name', 'like', '%' . $key . '%')
                 ->order('create_time desc')->select();
         } else {
-            $data = self::with('imgs')->where(['state' => 1])->order('create_time desc')->select();
+            $data = self::with(['imgs','video'])->where(['state' => 1])->order('create_time desc')->select();
         }
         return app('json')->success($data);
     }
@@ -341,7 +355,7 @@ class Goods extends BaseModel
      */
     public static function getProductDownByPage()
     {
-        $data = self::with('imgs')->where('state', 0)->order('create_time desc')->select();
+        $data = self::with(['imgs','video'])->where('state', 0)->order('create_time desc')->select();
         return app('json')->success($data);
     }
 
@@ -368,8 +382,18 @@ class Goods extends BaseModel
      */
     public static function getProductByName($name)
     {
-        $data = self::with('imgs')->where('state', 1)->where('goods_name', 'like', '%' . $name . '%')
+        $data = self::with(['imgs','video'])->where('state', 1)->where('goods_name', 'like', '%' . $name . '%')
             ->order('sales desc')->select();
+        if (app('system')->getValue('is_discount') == 1) {
+            foreach ($data as $k => $v) {
+                $data[$k]['discount'] = DiscountGoods::getDiscountGoods($v['goods_id']);
+            }
+        }
+        if (app('system')->getValue('is_pt') == 1) {
+            foreach ($data as $k => $v) {
+                $data[$k]['pt'] = PtGoods::getPtGoods($v['goods_id']);
+            }
+        }
         return $data;
     }
 

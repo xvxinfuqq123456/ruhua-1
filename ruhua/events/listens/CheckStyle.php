@@ -40,10 +40,14 @@ class CheckStyle
      */
     public function check_style($ids)
     {
-        $arr = GoodsModel::where('goods_id', 'in', $ids)->column('style');
+        $arr = GoodsModel::where(['goods_id'=>$ids])->column('style');
         $res = 1;
+        $data=[];
         foreach ($arr as $v) {
-            if ($arr[0] != $v) {
+            array_push($data,$v);
+        }
+        foreach ($data as $v) {
+            if ($data[0] != $v) {
                 $res = 0;
             }
         }

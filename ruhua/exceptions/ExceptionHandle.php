@@ -20,12 +20,11 @@ class ExceptionHandle extends Handle
             $this->msg = $e->msg;
             $this->errorCode = $e->errorCode;
         }else {
-			$this->code = 500;
+            $this->code = 500;
             $this->msg = $e->getMessage();
             $this->errorCode = 999;
-			/*
             //获取环境变量 Env::get('')
-            if(Env::get('APP_DEBUG')) {
+/*            if(Env::get('APP_DEBUG')) {
                 $this->code = 500;
                 $this->msg = $e->getMessage();
                 $this->errorCode = 999;
@@ -33,8 +32,7 @@ class ExceptionHandle extends Handle
                 $this->code = 500;
                 $this->msg = '服务器内部错误';
                 $this->errorCode = 999;
-            }
-			*/
+            }*/
         }
         $result = [
             'msg' => $this->msg,

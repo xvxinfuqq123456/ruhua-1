@@ -81,8 +81,10 @@ class Category extends BaseModel
      */
     public static function deleteCategory($id)
     {
-        $category_goods = Goods::where('category_id', $id)->count();
-        if ($category_goods > 0) {
+        $c_ids=self::where('pid',$id)->column('id');
+        $pid_goods = Goods::where('category_id', $id)->count();
+        $c_ids_goods = Goods::where(['category_id'=>$c_ids])->count();
+        if ($pid_goods > 0||$c_ids_goods>0) {
             return app('json')->fail('无法删除，该分类下有商品');
         }
         $result = self::where(['category_id' => $id])->delete();

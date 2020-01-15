@@ -20,7 +20,7 @@ class Group extends BaseModel
     public static function addGroup($post)
     {
         $data['name'] = $post['name'];
-        $data['oauth'] = implode(',', $post['res']);
+        $data['rule'] = implode(',',$post['rule_ids']);
         $res = self::create($data);
         if($res){
             return app('json')->success($res['id']);
@@ -38,13 +38,12 @@ class Group extends BaseModel
     {
         $id = $post['id'];
         $data['name'] = $post['name'];
-        $data['oauth'] = implode(',', $post['res']);
+        $data['rule'] = implode(',',$post['rule_ids']);
         $res = self::update($data, ['id' => $id]);
         if($res){
             return app('json')->success();
         }else{
             return app('json')->fail();
         }
-
     }
 }

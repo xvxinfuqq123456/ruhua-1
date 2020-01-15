@@ -56,7 +56,7 @@ class CategoryManage extends BaseController
      * cms 获取所有分类并排好序，包括隐藏
      * @return \think\response\Json
      */
-    public function getCate_sort()
+    public function getCateSort()
     {
         $article=(new QyFactory())->instance('CmsService');
         $data=$article->get_category_list();

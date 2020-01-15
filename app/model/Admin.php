@@ -16,4 +16,8 @@ use bases\BaseModel;
 class Admin extends BaseModel
 {
     protected $hidden=['password'];
+
+    public function group(){
+        return $this->belongsTo('Group','group_id','id');
+    }
 }

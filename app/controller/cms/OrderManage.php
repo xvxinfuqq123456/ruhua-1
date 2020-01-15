@@ -10,7 +10,6 @@ namespace app\controller\cms;
 
 
 use app\model\Order as OrderModel;
-use app\model\Tui as TuiModel;
 use app\validate\IDPostiveInt;
 use bases\BaseController;
 use services\QyFactory;
@@ -102,7 +101,7 @@ class OrderManage extends BaseController
             'order_id' => 'require|number',
         ];
         $param = Request::param();
-        $this->validate($param, $rule,[],true);
+        $this->validate($param, $rule);
         return OrderModel::up_remark_model($param);
     }
 
@@ -120,40 +119,4 @@ class OrderManage extends BaseController
         $this->validate($param, $rule);
         return OrderModel::edit_price_model($param);
     }
-
-    /**
-     * cms 获取所有退款信息
-     * @return mixed
-     */
-    public function getTuiAll()
-    {
-        $res = TuiModel::select();
-        foreach ($res as $k => $v) {
-            $res[$k]['money'] = $v['money'] / 100;
-        }
-        return app('json')->success($res);
-    }
-
-    /**
-     * 微信退款
-     * @param string $id
-     * @return mixed
-     */
-    public function TuiMoney($id='')
-    {
-        (new IDPostiveInt())->goCheck();
-        return OrderModel::TuiMoney($id);
-    }
-
-    /**
-     * 退款申请驳回
-     * @param $id
-     * @param $msg
-     * @return mixed
-     */
-    public function TuiBoHui($id, $msg)
-    {
-        return OrderModel::TuiBoHui($id,$msg);
-    }
-
 }

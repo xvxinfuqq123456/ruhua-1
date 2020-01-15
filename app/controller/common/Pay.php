@@ -3,6 +3,7 @@
 namespace app\controller\common;
 
 
+use app\services\AppPayService;
 use app\services\GzhNotifyService;
 use app\model\SysConfig;
 use app\services\PayService;
@@ -13,6 +14,7 @@ use bases\BaseController;
 use app\model\Order as OrderModel;
 use GzhPay\JsApi;
 use GzhPay\WxPayConfig;
+use think\facade\Log;
 
 class Pay extends BaseController
 {
@@ -33,8 +35,9 @@ class Pay extends BaseController
     //公众号回调
     public function gzh_back()
     {
+    	
+        Log::error("公众号支付回调");
         $config = new WxPayConfig();
-        Log::error("begin notify");
         $notify = new GzhNotifyService();
         $notify->Handle($config, false);
     }
@@ -50,8 +53,9 @@ class Pay extends BaseController
     //小程序支付回调
     public function receiveNotify()
     {
-       session('notify',true); 
+         //session('notify',true); 
         $notify = new WxNotifyService();
+        Log::error('进入支付回调');
         $notify->Handle();
     }
 

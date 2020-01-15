@@ -9,7 +9,9 @@
 namespace app\controller\common;
 
 
-use app\model\DiscountGoods as DiscountGoodsMdoel;
+use app\model\DiscountGoods as DiscountGoodsModel;
+use app\model\FxGoods as FxGoodsModel;
+use app\model\PtGoods as PtGoodsModel;
 use app\model\Goods as GoodsModel;
 use app\model\Rate as RateModel;
 use app\validate\IDPostiveInt;
@@ -79,6 +81,16 @@ class Product extends BaseController
             $ids=$id;
         }
         $data = GoodsModel::with('imgs')->where(['state'=>1,'category_id'=>$ids])->select();
+        if (app('system')->getValue('is_discount') == 1) {
+            foreach ($data as $k => $v) {
+                $data[$k]['discount'] = DiscountGoodsModel::getDiscountGoods($v['goods_id']);
+            }
+        }
+        if (app('system')->getValue('is_pt') == 1) {
+            foreach ($data as $k => $v) {
+                $data[$k]['pt'] = PtGoodsModel::getPtGoods($v['goods_id']);
+            }
+        }
         return app('json')->success($data);
     }
 

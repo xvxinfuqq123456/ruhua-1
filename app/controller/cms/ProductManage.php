@@ -99,7 +99,7 @@ class ProductManage extends BaseController
      */
     public function all_goods_info()
     {
-        $res = GoodsModel::with('imgs')->field('goods_id,goods_name,market_price,price,stock,sales,state,img_id')->select();
+        $res = GoodsModel::with('imgs')->field('goods_id,goods_name,market_price,price,stock,sales,is_hot,is_new,state,img_id,sort')->select();
         return app('json')->success($res);
     }
 

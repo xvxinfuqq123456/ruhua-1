@@ -90,7 +90,10 @@ class UserOrder extends BaseController
         $uid=TokenService::getCurrentUid();
         $rule=[
             'id' => 'require|number',
-            'json'=>'require',
+            'goods_id' => 'require',
+            'rate' => 'require',
+            'content' => 'require',
+            'imgs' => 'require',
         ];
         $post = input('post.');
         $this->validate($post,$rule);
@@ -98,15 +101,28 @@ class UserOrder extends BaseController
     }
 
     /**
+     * 查看退款金额
+     * @return mixed
+     */
+    public function getTuiMoney(){
+        $uid=TokenService::getCurrentUid();
+        $post = input('post.');
+        $this->validate($post,['order_id' => 'require|number', 'goods_id' => 'require',]);
+        $res= (new OrderModel)->getTuiMoney($uid,$post['order_id'],$post['goods_id']);
+        if(is_numeric($res)){
+            return app('json')->success($res);
+        }
+        return app('json')->fail($res);
+    }
+    /**
      * 提交退款申请
      * @return mixed
      */
     public function tuikuan_approve()
     {
-        (new IDPostiveInt())->goCheck();
         $post = input('post.');
         $uid = TokenService::getCurrentUid();
-        return OrderModel::tuikuan_approve($uid,$post);
+        return (new OrderModel)->tuikuan_approve($uid,$post);
 
     }
 

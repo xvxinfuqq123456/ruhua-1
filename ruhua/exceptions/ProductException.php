@@ -19,6 +19,7 @@ class ProductException extends BaseException
         }
         if(array_key_exists('msg',$params)){
             $this->msg = $params['msg'];
+            $this->message = $params['msg'];
         }
         if(array_key_exists('errorCode',$params)){
             $this->errorCode = $params['errorCode'];

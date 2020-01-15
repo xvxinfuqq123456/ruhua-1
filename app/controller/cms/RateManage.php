@@ -52,19 +52,4 @@ class RateManage extends BaseController
         $this->validate($post,$rule);
         return RateModel::addReply($post,$aid);
     }
-
-    /**
-     * cms添加评价
-     * @return mixed
-     */
-    public function addRate(){
-        $rule=[
-            'goods_id'=>'require|number',
-            'rate'=>'require|number',
-        ];
-        $post=input('post.');
-        $this->validate($post,$rule);
-        return RateModel::addRate($post);
-    }
-
 }

@@ -97,13 +97,13 @@ class GzhDeliveryMessage extends GzhMessage
                         'value' => $order['goods_name']
                     ],
                     'keyword2' => [
-                        'value' => $order['goods_money']
+                        'value' => $order['order_money']
                     ],
                     'keyword3' => [
-                        'value' => $order['money']
+                        'value' => $order['order_money']
                     ],
                     'remark' => [
-                        'value' => '等待商家退款'
+                        'value' => ''
                     ]
                 ];
                 $this->data = $data;
@@ -124,13 +124,13 @@ class GzhDeliveryMessage extends GzhMessage
                         'value' => $order['order_money']
                     ],
                     'keyword4' => [
-                        'value' => '代发货'
+                        'value' => '待发货'
                     ],
                     'keyword5' => [
                         'value' => $dt
                     ],
                     'remark' => [
-                        'value' => '请登陆后台查看'
+                        'value' => ''
                     ]
                 ];
                 $this->data = $data;

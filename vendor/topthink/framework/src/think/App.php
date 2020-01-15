@@ -493,8 +493,8 @@ class App extends Container
     {
         $appPath = $this->getAppPath();
 
-        if (is_file($appPath . 'common.php')) {
-            include_once $appPath . 'common.php';
+        if (is_file($appPath . 'Common.php')) {
+            include_once $appPath . 'Common.php';
         }
 
         include_once $this->thinkPath . 'helper.php';

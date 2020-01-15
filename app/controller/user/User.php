@@ -10,9 +10,7 @@ namespace app\controller\user;
 
 
 use app\model\User as UserModel;
-use app\model\Order;
 use app\services\TokenService;
-use app\services\WxNotifyService;
 use bases\BaseController;
 
 class User extends BaseController
@@ -23,7 +21,7 @@ class User extends BaseController
      */
     public function userLogin()
     {
-        return (new TokenService())->saveCache(['uid' => 3,'openid' => 'oq_jb4mLWx97WOEn7x38yM0YkFhs']);
+        return (new TokenService())->saveCache(['uid' => 15,'openid' => 'oq_jb4mLWx97WOEn7x38yM0YkFhs']);
     }
     
     /**
@@ -32,7 +30,7 @@ class User extends BaseController
     public function getInfo()
     {
         $uid = TokenService::getCurrentUid();
-        $res=UserModel::field('id,nickname,headpic,mobile',true)->find($uid);  
+        $res=UserModel::with('vip')->field('id,nickname,headpic,mobile',true)->find($uid);
         return app('json')->success($res);
     }
 }

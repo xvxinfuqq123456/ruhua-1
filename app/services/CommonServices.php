@@ -12,12 +12,13 @@ namespace app\services;
 use app\model\Goods as GoodsModel;
 use app\model\Image as ImageModel;
 use app\model\Order as OrderModel;
-use app\model\PtOrder as PtOrderModel;
 use app\model\SysConfig as SysConfigModel;
+use app\model\Video;
 use exceptions\TokenException;
 use kuaidi\Kd;
 use think\facade\Cache;
 use think\facade\Db;
+use think\facade\Filesystem;
 use think\Image;
 
 class CommonServices
@@ -67,24 +68,6 @@ class CommonServices
             $arr[$k]['address'] = $v['receiver_address'];
             $arr[$k]['create_time'] = $v['create_time'];
         }
-        if (app('system')->getValue('is_pt') == 1) {
-            $ptList = PtOrderModel::with(['user'])->order('create_time desc')->select()->toArray();
-            foreach ($ptList as $v) {
-                $k = count($arr);
-                $arr[$k]['xu'] = $k + 1;
-                $arr[$k]['number'] = $v['order_num'];
-                $arr[$k]['status'] = $v['shipment_state'] ? '已发货' : '待发货';
-                $arr[$k]['goods'] = $v['goods_name'] . '[x' . $v['num'] . ']@@';
-                $arr[$k]['goods_money'] = $v['goods_money'];
-                $arr[$k]['order_money'] = $v['order_money'];
-                $arr[$k]['nickname'] = $v['user']['nickname'];
-                $arr[$k]['username'] = $v['receiver_name'];
-                $arr[$k]['mobile'] = $v['receiver_mobile'];
-                $arr[$k]['city'] = $v['receiver_city'];
-                $arr[$k]['address'] = $v['receiver_address'];
-                $arr[$k]['create_time'] = $v['create_time'];
-            }
-        }
         $csv_title = array('序号', '编号', '状态', '商品名称', '商品总价', '订单总价', '用户昵称', '收货姓名', '收货人手机',
             '收货人城市', '收货人地址', '创建时间');
         $this->put_csv($arr, $csv_title);
@@ -128,7 +111,7 @@ class CommonServices
             $res = Db::name($db)->where($where)->update([$field => 0]);
         }
         if ($res) {
-            if ($db == 'goods') {
+            if ($db == 'goods' && $field == 'state') {
                 GoodsModel::deleteGoods($id);
             }
             return app('json')->success();
@@ -150,7 +133,7 @@ class CommonServices
             return app('json')->fail('请上传文件img');
         }
         $name = uniqid() . '.png';
-        $file->thumb(500,500,1)->save('./uploads/' . $use . '/' . $name);
+        $file->thumb(500, 500, 1)->save('./uploads/' . $use . '/' . $name);
         $res = self::img_save($use, $name, $cid);   //保存图片
         if ($res['id']) {
             if ($back == 'id' && $type == 1) {
@@ -216,24 +199,11 @@ class CommonServices
         return $kd->get();
     }
 
-
     /**
-     * 快递查询
-     * @param $id
-     * @return mixed
+     * 导出csv文件
+     * @param $list
+     * @param $title
      */
-    public static function getPtCourier($id)
-    {
-        $order = PtOrderModel::where(['order_id' => $id])->field('order_id,courier,courier_num')->find();
-        if (!$order['courier'] || !$order['courier_num']) {
-            return app('json')->fail('未找到单号');
-        }
-        $code = SysConfigModel::where(['key' => 'appcode'])->value('value');
-        $kd = new Kd($code, $order['courier'], $order['courier_num']);
-        return $kd->get();
-    }
-
-    //导出csv文件
     public function put_csv($list, $title)
     {
         $file_name = "CSV" . date("mdHis", time()) . ".csv";
@@ -263,5 +233,31 @@ class CommonServices
         unset($list);
         fclose($file);
         exit();
+    }
+
+    /**
+     * 获取二维码
+     * @param $path
+     * @return string
+     */
+    public static function getCodeImg($path)
+    {
+        $qcode = app('json')->getValue('code_url');
+        $url = $qcode . $path;
+        return $data['qrcode'] = (new QrcodeServer())->get_qrcode($url);
+    }
+
+    private function getCodeUrl()
+    {
+
+        if (strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') !== false) {
+            return 'https://mp.weixin.qq.com/a/~kMNh0OK3gimX7K6A4T7yRw~~';
+        }
+        //判断是不是支付宝
+        if (strpos($_SERVER['HTTP_USER_AGENT'], 'AlipayClient') !== false) {
+            return "您正在使用 支付宝 扫码";
+        }
+        //哪个都不是
+        return "请使用支付宝、QQ、微信扫码";
     }
 }

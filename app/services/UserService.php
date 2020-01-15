@@ -9,8 +9,6 @@ use app\model\BannerItem as BannerItemModel;
 use app\model\Category as CategoryModel;
 use app\model\Coupon as CouponModel;
 use app\model\Order as OrderModel;
-use app\model\PtOrder as PtOrderModel;
-use app\model\Rate as RateModel;
 use app\model\Tui as TuiModel;
 use app\model\User as UserModel;
 use interfaces\RoleInterface;
@@ -91,21 +89,6 @@ class UserService implements RoleInterface
         }, 'Imgs'])->where(['user_id' => $uid])
             ->field('order_id,order_num,user_id,type,state,payment_state,shipping_money,shipment_state,order_money,activity_type,create_time')
             ->order('order_id desc')->select()->toArray();
-        if (app('system')->getValue('is_pt') == 1) {
-            $str='pt_order_id,order_num,user_id,type,state,payment_state,shipping_money,order_money,activity_type,create_time';
-            $str1='id,pt_order_id,goods_id,goods_name,sku_name,price,num,goods_money,img_id,imgs';
-            $arr=explode(',',$str);
-            $arr1=explode(',',$str1);
-            $arr=array_flip($arr);
-            $arr1=array_flip($arr1);
-            $res=[];
-            $pt = PtOrderModel::with(['Imgs'])->where(['user_id' => $uid])->order('pt_order_id desc')->select()->toArray();
-            foreach ($pt as $k=>$v){
-                $res[$k]= array_intersect_key($v,$arr);
-                $res[$k]['order_goods']= [array_intersect_key($v,$arr1)];
-            }
-            $data = array_merge($data, $res);
-        }
         return $data;
     }
 

@@ -56,10 +56,11 @@ class ArticleManage extends BaseController
      */
     public function adminGetAllArticle()
     {
-        $article=(new QyFactory())->instance('CmsService');
-        $data=$article->get_article_list();
+        $article = (new QyFactory())->instance('CmsService');
+        $data = $article->get_article_list();
         return app('json')->success($data);
     }
+
     /**
      * cms获取所有文章名称ID
      * @return \think\Collection

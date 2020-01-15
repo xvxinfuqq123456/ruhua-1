@@ -154,8 +154,8 @@ class Build extends Command
     {
         $appPath = $this->basePath . ($dir ? $dir . DIRECTORY_SEPARATOR : '');
 
-        if (!is_file($appPath . 'common.php')) {
-            file_put_contents($appPath . 'common.php', "<?php" . PHP_EOL . "// 这是系统自动生成的公共文件" . PHP_EOL);
+        if (!is_file($appPath . 'Common.php')) {
+            file_put_contents($appPath . 'Common.php', "<?php" . PHP_EOL . "// 这是系统自动生成的公共文件" . PHP_EOL);
         }
 
         foreach (['event', 'middleware', 'provider'] as $name) {

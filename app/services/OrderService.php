@@ -95,6 +95,7 @@ class OrderService
         $data['payment_type'] = $post['payment_type']; //支付方式
         $data['message'] = $post['msg'] ? $post['msg'] : ''; //留言
         $data['user_id'] = $uid;
+        $post['user_id'] = $uid;            //uid 写入post
         $data['user_ip'] = (new Request())->ip(); //买家IP
         foreach ($post['json'] as $k => $v) {
             $data['type'] = GoodsModel::where('goods_id', $v['goods_id'])->value('style');
