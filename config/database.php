@@ -1,7 +1,7 @@
 
 <?php
-use think\facade\Env;
 
+use think\facade\Env;
 return [
     // 默认使用的数据库连接配置
     'default'         => Env::get('database.driver', 'mysql'),
@@ -25,11 +25,11 @@ return [
             // 服务器地址
             'hostname'          => Env::get('database.hostname', '127.0.0.1'),
             // 数据库名
-            'database'          => Env::get('database.database', 'tp3_rh'),
+            'database'          => Env::get('database.database', ''),
             // 用户名
-            'username'          => Env::get('database.username', 'root'),
+            'username'          => Env::get('database.username', ''),
             // 密码
-            'password'          => Env::get('database.password', '123456'),
+            'password'          => Env::get('database.password', ''),
             // 端口
             'hostport'          => Env::get('database.hostport', '3306'),
             // 数据库连接参数
