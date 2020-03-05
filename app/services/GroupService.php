@@ -9,8 +9,8 @@
 namespace app\services;
 
 use app\model\Admin as AdminModel;
-use app\model\GroupRule;
 use think\facade\Cache;
+use think\facade\Db;
 use think\facade\Request;
 
 /**
@@ -45,9 +45,8 @@ class GroupService
         if (!$admin_rule[0]) {
             return false;
         }
-        $group = new GroupRule();
         foreach ($admin_rule as $k => $v) {
-            $name = $group->where('id', $v)->value('name');
+            $name = Db::name('group_rule')->where('id', $v)->value('name');
             if ($v == 1) {
                 $name = explode(',', $name);
                 if (in_array($con, $name)) {
@@ -73,7 +72,7 @@ class GroupService
         $res = Cache::get('GroupRule');
         if (!$res) {
             $str = '';
-            $rule = GroupRule::select();
+            $rule = Db::name('group_rule')->select();
             foreach ($rule as $k => $v) {
                 if ($v['id'] == 1) {
                     $str = $v['name'];

@@ -30,7 +30,51 @@ class User extends BaseController
     public function getInfo()
     {
         $uid = TokenService::getCurrentUid();
-        $res=UserModel::with('vip')->field('id,nickname,headpic,mobile',true)->find($uid);
+        $res=UserModel::field('id,nickname,headpic,mobile',true)->find($uid);
         return app('json')->success($res);
     }
+
+    /**
+     * 获取发票信息
+     * @return mixed
+     */
+    public function getCpy(){
+        $uid = TokenService::getCurrentUid();
+        $data= UserModel::getCpyInfo($uid);
+        return app('json')->success($data);
+    }
+
+    /**
+     * 修改
+     * @return mixed
+     */
+    public function editCpy(){
+        $uid = TokenService::getCurrentUid();
+        $post=input('post.');
+        $this->validate($post,['cpy_name'=>'require','cpy_num'=>'require','email'=>'require','user_name'=>'require']);
+        return UserModel::editCpy($post,$uid);
+    }
+
+    /**
+     * 获取小程序码
+     * @return mixed
+     */
+    public function getXcxCode(){
+        $uid=TokenService::getCurrentUid();
+        $path=input('post.path');
+        $scene=input('post.scene');
+        return (new UserModel)->getXcxInviteUrl($uid,$path,$scene);
+    }
+
+    /**
+     * 获取二维码
+     * @return mixed
+     */
+    public function getWebCode(){
+        $uid=TokenService::getCurrentUid();
+        $path=input('post.path');
+        $scene=input('post.scene');
+        return (new UserModel)->getWebInviteUrl($uid,$path,$scene);
+    }
+
 }

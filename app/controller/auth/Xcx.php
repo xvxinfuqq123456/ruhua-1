@@ -4,6 +4,8 @@ namespace app\controller\auth;
 
 use app\model\SysConfig as SysConfigModel;
 use app\model\User as UserModel;
+use app\services\MergeService;
+use bases\BaseCommon;
 use exceptions\TokenException;
 use think\Exception;
 
@@ -36,9 +38,8 @@ class Xcx extends Token
     //获取token，openid
     public function getToken()
     {
-
         //注意code是临时的，所以向微信服务器提交只能使用一次
-        $result = curl_get($this->wxLoginUrl);
+        $result = (new BaseCommon())->curl_get($this->wxLoginUrl);
         $wxResult = json_decode($result, true);
         if (empty($wxResult)) {
             throw new TokenException(['msg' => '获取session_key及openID时异常，微信内部错误']);
@@ -55,23 +56,31 @@ class Xcx extends Token
     //openid，uid放入缓存，$token做缓存键名;
     private function grantToken($wxResult)
     {
-        if (array_key_exists('unionid', $wxResult)) {
+        $mergeMode = app('system')->getValue('merge_mode');
+        $data=[];
+        if (array_key_exists('unionid', $wxResult) && $mergeMode == 1) {
             $user = UserModel::where('unionid', $wxResult['unionid'])->find();
             if ($user) {
-                $opid = UserModel::where(['openid'=>$wxResult['openid'],'unionid'=>$wxResult['unionid']])->find();
-                if($opid){
+                $opid = UserModel::where(['openid' => $wxResult['openid'], 'unionid' => $wxResult['unionid']])->find();
+                if ($opid) {
                     $uid = $opid['id'];
-                }else{
+                } else {
                     $user->save(['openid' => $wxResult['openid']]);
                     $uid = $user['id'];
+                    (new MergeService())->mergeUser($uid, 'openid', $wxResult['openid'], 2);//合并
                 }
             } else {
                 $opid = UserModel::where('openid', $wxResult['openid'])->find();
-                if($opid){
+                if ($opid) {
                     $opid->save(['unionid' => $wxResult['unionid']]);
                     $uid = $opid['id'];
-                }else{
-                    $new_user = UserModel::create(['openid' => $wxResult['openid'], 'unionid' => $wxResult['unionid']]);
+                } else {
+                    $data['openid']=$wxResult['openid'];
+                    $data['unionid']=$wxResult['unionid'];
+                    if (array_key_exists('uniacid', $wxResult)) {
+                        $data['uniacid'] = $wxResult['uniacid'];
+                    }
+                    $new_user = UserModel::create($data);
                     $uid = $new_user['id'];
                 }
             }
@@ -80,7 +89,11 @@ class Xcx extends Token
             if ($user_id) {
                 $uid = $user_id;
             } else {
-                $new_user = UserModel::create(['openid' => $wxResult['openid']]);
+                $data['openid']=$wxResult['openid'];
+                if (array_key_exists('uniacid', $wxResult)) {
+                    $data['uniacid'] = $wxResult['uniacid'];
+                }
+                $new_user = UserModel::create($data);
                 $uid = $new_user['id'];
             }
         }

@@ -10,6 +10,8 @@
 namespace app\controller\auth;
 
 use app\model\SysConfig as SysConfigModel;
+use app\services\MergeService;
+use bases\BaseCommon;
 use exceptions\BaseException;
 use exceptions\TokenException;
 use think\Exception;
@@ -55,7 +57,7 @@ class Gzh extends Token
     {
         $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s';
         $surl = sprintf($url, $this->gzhAppID, $this->gzhAppSecret);
-        $access = curl_get($surl);
+        $access = (new BaseCommon())->curl_get($surl);
         $access = json_decode($access, true);
         $access_token = $access['access_token'];
         return $access_token;
@@ -64,7 +66,7 @@ class Gzh extends Token
     public function get_ticket($access_token)
     {
         $url = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=' . $access_token . '&type=jsapi';
-        $json = curl_get($url);
+        $json = (new BaseCommon())->curl_get($url);
         $arr = json_decode($json, true);
         $ticket = $arr['ticket'];
         return $ticket;
@@ -105,7 +107,7 @@ class Gzh extends Token
     {
         $wxLoginUrl = sprintf($this->gzh_login_url, $this->gzhAppID, $this->gzhAppSecret, $code);
         //注意code是临时的，所以向微信服务器提交只能使用一次
-        $result = curl_get($wxLoginUrl);
+        $result = (new BaseCommon())->curl_get($wxLoginUrl);
         $wxResult = json_decode($result, true);
         if (empty($wxResult)) {
             throw new TokenException(['msg' => '获取session_key及openID时异常，微信内部错误']);
@@ -125,7 +127,9 @@ class Gzh extends Token
         $openid = $wxResult['openid'];
         $access_token = $wxResult['access_token'];
         $userinfo = $this->getUserInfo($openid, $access_token);
-        if (array_key_exists('unionid', $wxResult)) {
+        $mergeMode = app('system')->getValue('merge_mode');
+        $data = [];
+        if (array_key_exists('unionid', $wxResult) && $mergeMode == 1) {
             $unionid = $wxResult['unionid'];
             $user = UserModel::where('unionid', $unionid)->find();
             if ($user) {
@@ -135,6 +139,7 @@ class Gzh extends Token
                 } else {
                     $user->save(['openid_gzh' => $openid]);
                     $uid = $user['id'];
+                    (new MergeService())->mergeUser($uid, 'openid_gzh', $openid, 2);//合并
                 }
             } else {
                 $gzh_id = UserModel::where('openid_gzh', $openid)->find();
@@ -142,12 +147,14 @@ class Gzh extends Token
                     $gzh_id->save(['unionid' => $unionid]);
                     $uid = $gzh_id['id'];
                 } else {
-                    $new_user = UserModel::create([
-                        'openid_gzh' => $openid,
-                        'unionid' => $unionid,
-                        'nickname' => base64_encode($userinfo['nickname']),
-                        'headpic' => $userinfo['headpic']
-                    ]);
+                    $data['openid_gzh'] = $openid;
+                    $data['unionid'] = $unionid;
+                    $data['nickname'] = base64_encode($userinfo['nickname']);
+                    $data['headpic'] = $userinfo['headpic'];
+                    if (array_key_exists('uniacid', $wxResult)) {
+                        $data['uniacid'] = $wxResult['uniacid'];
+                    }
+                    $new_user = UserModel::create($data);
                     $uid = $new_user['id'];
                 }
             }
@@ -158,25 +165,30 @@ class Gzh extends Token
                     'headpic' => $userinfo['headpic']]);
                 $uid = $user['id'];
             } else {
-                $new_user = UserModel::create([
-                    'openid_gzh' => $openid,
-                    'nickname' => base64_encode($userinfo['nickname']),
-                    'headpic' => $userinfo['headpic']
-                ]);
+                $data['openid_gzh'] = $openid;
+                $data['nickname'] = base64_encode($userinfo['nickname']);
+                $data['headpic'] = $userinfo['headpic'];
+                if (array_key_exists('uniacid', $wxResult)) {
+                    $data['uniacid'] = $wxResult['uniacid'];
+                }
+                $new_user = UserModel::create($data);
                 $uid = $new_user['id'];
             }
         }
         if (!$uid) {
             throw new BaseException(['msg' => '用户注册失败']);
         }
-        $cachedValue = $this->setWxCache($openid, $uid);
+        $cachedValue = $this->setWxCache($openid, $uid, $data);
         $token = $this->saveCache($cachedValue);
         return $token;
     }
 
     //组合uid，openid，权限
-    private function setWxCache($openid, $uid)
+    private function setWxCache($openid, $uid, $data)
     {
+        if (array_key_exists('uniacid', $data)) {
+            $cache['uniacid'] = $data['uniacid'];
+        }
         $cache['openid'] = $openid;
         $cache['uid'] = $uid;
         $cache['scope'] = 9;  // 推荐用枚举
@@ -187,7 +199,7 @@ class Gzh extends Token
     {
         $url = 'https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s&lang=zh_CN';
         $userinfo_url = sprintf($url, $access_token, $openid);
-        $res = curl_get($userinfo_url);
+        $res = (new BaseCommon())->curl_get($userinfo_url);
         $userinfo = json_decode($res, true);
 
         if (!isset($userinfo['nickname'])) {

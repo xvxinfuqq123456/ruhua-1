@@ -10,9 +10,9 @@ namespace app\controller\cms;
 
 
 use app\model\Group as GroupModel;
-use app\model\GroupRule as GroupRuleModel;
 use app\validate\IDPostiveInt;
 use bases\BaseController;
+use think\facade\Db;
 
 class Group extends BaseController
 {
@@ -103,7 +103,7 @@ class Group extends BaseController
      */
     public function getAllGroupRule()
     {
-        $res = GroupRuleModel::select();
+        $res = Db::name('group_rule')->select();
         return app('json')->success($res);
     }
 

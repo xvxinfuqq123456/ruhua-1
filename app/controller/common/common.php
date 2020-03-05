@@ -33,10 +33,13 @@ class Common extends BaseController
     {
         $file=[];
         if ($type == 1) {
-            $file = readfile("./files/服务协议.txt", "r");
+            $file = file_get_contents("./files/服务协议.txt", "r");
         }
         if ($type == 2) {
-            $file = readfile("./files/隐私政策.txt", "r");
+            $file = file_get_contents("./files/隐私政策.txt", "r");
+        }
+        if ($type == 3) {
+            $file = file_get_contents("./files/授权信息.txt", "r");
         }
         return $file;
     }

@@ -10,9 +10,9 @@
 // +---------------------------------------------------------------------
 namespace app\controller\install;
 
-use app\model\Admin;
 use app\services\QrcodeServer;
 use app\validate\InstallValidate;
+use bases\BaseCommon;
 use bases\BaseController;
 use mysqli;
 use think\facade\View;
@@ -22,7 +22,7 @@ class Index extends BaseController
     protected function initialize()
     {
         // 检测是否安装过
-        if (vae_is_installed()) {
+        if ((new BaseCommon())->vae_is_installed()) {
             header('Location:/jump.html');
             exit;
         }
@@ -114,7 +114,7 @@ class Index extends BaseController
             //插入管理员
             $username = input('post.username');
             $password = input('post.password');
-            $password = password($password);
+            $password = (new BaseCommon)->password($password);
             $create_time = time();
 
             $caeate_admin_sql = "INSERT INTO " . "`".$data['DB_PREFIX'] . "admin"."` "
@@ -208,7 +208,7 @@ return [
                 throw new BaseException(['msg' => '创建安装鉴定文件失败，请检查目录权限']);
             }
 
-            (new QrcodeServer)->getCode($_SERVER['HTTP_HOST'].'/h5/index.html');
+//            (new QrcodeServer)->getCode($_SERVER['HTTP_HOST'].'/h5/index.html');
             return $res['code'] = 1;
         }
     }

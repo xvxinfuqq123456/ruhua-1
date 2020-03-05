@@ -12,7 +12,7 @@ use think\facade\Route;
 
 
 Route::get('', function (){
-    echo '如花商城系统  v1.22（免费版)';
+    echo '如花商城系统 '.VAE_VERSION .'（免费版)';
 });
 
 Route::get('api_check','install.Check/index');
@@ -27,6 +27,7 @@ Route::group('install', function () {
 
 //定时任务
 Route::group('task', function () {
+    Route::get('day_task', 'common.Task/getDayRefresh');  //1天定时任务
     Route::get('refresh', 'common.Task/getRefresh');  //3小时定时任务
     Route::get('order_task', 'common.Task/getOrderTask');  //关闭未支付订单、拼团失败订单定时任务
     Route::get('check_order_task', 'common.Task/checkLoopTask');  //查看系统自动关闭订单运行状态
@@ -41,6 +42,10 @@ Route::group('auth', function () {
     Route::get('gzh_token', 'auth.Auth/getToken');   //异步接收公众号code,获取openid，返回token
     Route::post('upinfo', 'auth.Auth/xcx_upinfo');   //更新用户昵称、头像
     Route::post('get_app_token', 'auth.Auth/getAppToken');   //app获取用户token
+
+    Route::post('get_login_code', 'auth.Mobile/getLoginCode');   //获取手机登录的验证码
+    Route::post('get_mobile_token', 'auth.Mobile/getMobileToken');   //获取手机登录的token
+
 });
 
 //公共
@@ -126,13 +131,31 @@ Route::group('category', function () {
 
     //管理员
     Route::group('admin', function () {
-        Route::post('add_category', 'cms.CategoryManage/addCategory');//添加广告
-        Route::post('edit_category', 'cms.CategoryManage/editCategory');//修改广告
-        Route::put('del_category', 'cms.CategoryManage/deleteCategory');//删除广告
+        Route::post('add_category', 'cms.CategoryManage/addCategory');//添加分类
+        Route::post('edit_category', 'cms.CategoryManage/editCategory');//修改分类
+        Route::put('del_category', 'cms.CategoryManage/deleteCategory');//删除分类
         Route::get('all_category', 'cms.CategoryManage/getCateSort');//cms 获取所有分类并排好序，包括隐藏
         Route::post('set_sort', 'cms.CategoryManage/setSort');//更新广告排序
     })->middleware('CheckCms');
 });
+
+//优惠券
+Route::group('coupon', function () {
+
+    Route::group('', function () {
+        Route::get('get_coupon', function(){ echo '非商业版'; });//用户查看优惠券
+        Route::get('add_coupon', function(){ echo '非商业版'; });//用户领取优惠券
+        Route::get('get_coupon_goods', function(){ echo '非商业版'; });//获取优惠券能使用的商品
+    });
+
+    //用户
+    Route::group('user', function () {
+        Route::get('get_coupon', function(){ echo '非商业版'; });//用户查看自己的优惠券
+        Route::post('order_coupon', function(){ echo '非商业版'; });//用户查看订单可用优惠券
+    });
+
+});
+
 
 //导航
 Route::group('nav', function () {
@@ -151,6 +174,18 @@ Route::group('nav', function () {
         Route::post('set_sort', 'cms.NavManage/setSort');//更新排序导航
     })->middleware('CheckCms');
 });
+
+//视频
+Route::group('video', function () {
+    //公共}
+    //管理员
+    Route::group('admin', function () {
+        Route::post('add_video', 'cms.Common/uploadVideo');   //上传视频
+        Route::get('get_all_video', 'cms.VideoManage/getAllVideo');//获取所有视频
+        Route::post('edit_video', 'cms.VideoManage/editVideo');//隐藏视频
+    })->middleware('CheckCms');
+});
+
 
 //图片
 Route::group('img_category', function () {
@@ -209,49 +244,6 @@ Route::group('rate', function () {
         Route::post('add_reply', 'cms.RateManage/addReply');//回复
         Route::put('del_rate', 'cms.RateManage/deleteRate');//删除评价
         Route::get('get_all_rate', 'cms.RateManage/getAllRate');//获取所有评价
-    })->middleware('CheckCms');
-});
-
-
-//优惠券
-Route::group('coupon', function () {
-
-    Route::group('', function () {
-        Route::get('get_coupon', 'user.UserCoupon/getCoupon');//用户查看优惠券
-        Route::get('add_coupon', 'user.UserCoupon/addUserCoupon');//用户领取优惠券
-        Route::get('get_coupon_goods', 'common.Product/getCouponProduct');//获取优惠券能使用的商品
-    });
-
-    //用户
-    Route::group('user', function () {
-        Route::get('get_coupon', 'user.UserCoupon/selectUserCoupon');//用户查看自己的优惠券
-        Route::post('order_coupon', 'user.UserCoupon/selectStatusCoupon');//用户查看订单可用优惠券
-    });
-
-    //管理员
-    Route::group('admin', function () {
-        Route::post('add_coupon', 'cms.CouponManage/addCoupon');//创建优惠券
-        Route::put('del_coupon', 'cms.CouponManage/deleteCoupon');//删除优惠券
-        Route::get('get_coupon', 'cms.CouponManage/getCoupon');//获取优惠券
-
-    })->middleware('CheckCms');
-});
-
-//积分
-Route::group('points', function () {
-
-    Route::group('', function () {
-    });
-
-    //用户
-    Route::group('user', function () {
-        Route::get('get_points', 'user.UserPoints/getPointsNum');//签到添加积分
-    });
-
-    //管理员
-    Route::group('admin', function () {
-        Route::get('get_record', 'cms.PointsManage/getPointsRecord');//获取所有用户积分详细
-
     })->middleware('CheckCms');
 });
 
@@ -315,6 +307,9 @@ Route::group('order', function () {
         Route::post('/pay/pre_order', 'common.Pay/getPreOrder');//小程序支付
         Route::post('/pay/notify', 'common.Pay/receiveNotify');//小程序支付回调
 
+        Route::post('/pay/pre_app', 'common.Pay/getAppPayData');//app支付
+        Route::post('/pay/app_notify', 'common.Pay/appNotify');//app支付回调
+
         Route::post('get_kd', 'user.UserOrder/getCourier');//快递查询
     });
 
@@ -332,7 +327,7 @@ Route::group('order', function () {
     //手机管理员
     Route::group('mcms', function () {
         Route::post('/check_drive', 'cms.OrderManage/checkDrive'); //未发货订单提醒
-        Route::post('/get_order', 'cms.OrderManage/getOrderAll'); //CMS获取所有订单简要
+        Route::post('/get_order', 'cms.OrderManage/mCmsGetOrder'); //CMS获取所有订单简要
         Route::post('/get_order_one', 'cms.OrderManage/GetOrderOne'); //获取指定订单详细--CMS
         Route::post('/edit_courier', 'cms.OrderManage/editCourier'); //更新订单配送信息
         Route::get('/get_order_num', 'cms.Statistic/getOrderNum'); //订单统计
@@ -402,6 +397,12 @@ Route::group('user', function () {
         Route::put('/login', 'user.User/userLogin'); //模拟用户登录
         Route::get('/info', 'user.User/getInfo'); //获取用户基础信息
 
+        Route::get('/get_cpy', 'user.User/getCpy'); //获取用户发票信息
+        Route::post('/edit_cpy', 'user.User/editCpy'); //修改用户发票信息
+
+        Route::post('/get_xcx_code', 'user.User/getXcxCode'); //获取用户小程序码
+        Route::post('/get_web_code', 'user.User/getWebCode'); //获取用户二维码
+        Route::post('/get_all_code', 'user.User/getAllCode'); //获取3端码
     });
 
     //管理员

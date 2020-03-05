@@ -4,6 +4,7 @@
 namespace app\services;
 
 
+use bases\BaseCommon;
 use think\Exception;
 use think\facade\Log;
 
@@ -40,7 +41,7 @@ class GzhMessage
         ];
       //dump($data);
       //exit;
-        $result = curl_post($this->sendUrl, $data);
+        $result = (new BaseCommon())->curl_post($this->sendUrl, $data);
         $result = json_decode($result, true);
       
         Log::error($result);

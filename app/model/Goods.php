@@ -197,10 +197,10 @@ class Goods extends BaseModel
         $arr = [];
         $discount = [];
         $pt = [];
-        if (app('system')->getValue('is_discount') == 1) {
+        if (config('setting.is_business') == 1) {
             $discount = DiscountGoods::column('goods_id');
         }
-        if (app('system')->getValue('is_pt') == 1) {
+        if (config('setting.is_business') == 1) {
             $pt = PtGoods::column('goods_id');
         }
         $res = Goods::with(['imgs','video'])->field('goods_id,img_id,price,goods_name')->select();
@@ -219,7 +219,7 @@ class Goods extends BaseModel
      */
     public static function getProduct($id)
     {
-        $res = self::with(['imgs','video','sku', 'delivery'])->where('goods_id', $id)->find();
+        $res = self::with(['imgs','sku', 'delivery'])->where('goods_id', $id)->find();
         $url = [];
         $list = [];
         if (!empty($res['banner_imgs'])) {
@@ -255,10 +255,10 @@ class Goods extends BaseModel
         } else {
             $res['sku_arr'] = [];
         }
-        if (app('system')->getValue('is_discount') == 1) {
+        if (config('setting.is_business') == 1) {
             $res['discount'] = DiscountGoods::getDiscountGoods($id);
         }
-        if (app('system')->getValue('is_pt') == 1) {
+        if (config('setting.is_business') == 1) {
             $res['pt'] = PtGoods::getPtGoods($id);
         }
         return app('json')->success($res);
@@ -284,12 +284,12 @@ class Goods extends BaseModel
         if (!$data || count($data) < 1) {
             return;//throw new BaseException(['msg'=>'获取最新商品失败或无数据']);
         }
-        if (app('system')->getValue('is_discount') == 1) {
+        if (config('setting.is_business') == 1) {
             foreach ($data as $k => $v) {
                 $data[$k]['discount'] = DiscountGoods::getDiscountGoods($v['goods_id']);
             }
         }
-        if (app('system')->getValue('is_pt') == 1) {
+        if (config('setting.is_business') == 1) {
             foreach ($data as $k => $v) {
                 $data[$k]['pt'] = PtGoods::getPtGoods($v['goods_id']);
             }
@@ -339,10 +339,10 @@ class Goods extends BaseModel
     public static function getProductByPage($key = '')
     {
         if (!empty($key)) {
-            $data = self::with(['imgs','video'])->where(['state' => 1])->where('goods_name', 'like', '%' . $key . '%')
+            $data = self::with(['imgs'])->where(['state' => 1])->where('goods_name', 'like', '%' . $key . '%')
                 ->order('create_time desc')->select();
         } else {
-            $data = self::with(['imgs','video'])->where(['state' => 1])->order('create_time desc')->select();
+            $data = self::with(['imgs'])->where(['state' => 1])->order('create_time desc')->select();
         }
         return app('json')->success($data);
     }
@@ -384,12 +384,12 @@ class Goods extends BaseModel
     {
         $data = self::with(['imgs','video'])->where('state', 1)->where('goods_name', 'like', '%' . $name . '%')
             ->order('sales desc')->select();
-        if (app('system')->getValue('is_discount') == 1) {
+        if (config('setting.is_business') == 1) {
             foreach ($data as $k => $v) {
                 $data[$k]['discount'] = DiscountGoods::getDiscountGoods($v['goods_id']);
             }
         }
-        if (app('system')->getValue('is_pt') == 1) {
+        if (config('setting.is_business') == 1) {
             foreach ($data as $k => $v) {
                 $data[$k]['pt'] = PtGoods::getPtGoods($v['goods_id']);
             }
@@ -487,10 +487,10 @@ class Goods extends BaseModel
         if (app('system')->getValue('fx_status')) {
             FxGoods::where('goods_id', $id)->delete();
         }
-        if (app('system')->getValue('is_discount')) {
+        if (config('setting.is_business')) {
             DiscountGoods::where('goods_id', $id)->delete();
         }
-        if (app('system')->getValue('is_pt')) {
+        if (config('setting.is_business')) {
             PtGoods::where('goods_id', $id)->delete();
         }
     }

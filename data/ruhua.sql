@@ -4453,6 +4453,30 @@ CREATE TABLE `rh_user_address` (
 
 -- --------------------------------------------------------
 
+
+
+CREATE TABLE `rh_video` (
+  `id` int(11) NOT NULL,
+  `url` varchar(255) NOT NULL COMMENT '图片路径',
+  `from` tinyint(4) NOT NULL DEFAULT 1 COMMENT '1 来自本地，2 来自公网',
+  `use_name` varchar(80) NOT NULL,
+  `is_visible` int(11) NOT NULL DEFAULT 1 COMMENT '是否能显示1能0不能',
+  `description` varchar(50) DEFAULT NULL COMMENT '描述字段',
+  `delete_time` int(11) DEFAULT NULL,
+  `update_time` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='视频表';
+
+
+ALTER TABLE `rh_video`
+  ADD PRIMARY KEY (`id`);
+
+
+ALTER TABLE `rh_video`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+COMMIT;
+
+
+
 --
 -- 表的结构 `rh_user_coupon`
 --
@@ -4469,21 +4493,6 @@ CREATE TABLE `rh_user_coupon` (
   `status` int(11) DEFAULT '0' COMMENT '使用状态(0未使用1已使用2已完成3已过期',
   `create_time` int(11) NOT NULL COMMENT '领取时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户优惠券表';
-
-
-DROP TABLE IF EXISTS `rh_video`;
-CREATE TABLE `rh_video` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `url` varchar(255) NOT NULL COMMENT '图片路径',
-  `from` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1 来自本地，2 来自公网',
-  `use_name` varchar(80) NOT NULL,
-  `is_visible` int(11) NOT NULL DEFAULT '1' COMMENT '是否能显示1能0不能',
-  `description` varchar(50) DEFAULT NULL COMMENT '描述字段',
-  `delete_time` int(11) DEFAULT NULL,
-  `update_time` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='视频表';
-
 
 --
 -- 转储表的索引

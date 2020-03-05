@@ -118,14 +118,13 @@
 
                 <div class="layui-form-item">
                     <div style="margin:10px auto;width: 190px;">
-                        <a href="{:url('install/step2')}" class="layui-btn blue">上一步</a>
+                        <a href="{:url('install/step2')}" class="layui-btn" style="background: #C0C0C0">上一步</a>
                         <button class="layui-btn blue" lay-submit="" lay-filter="formDemo">创建数据</button>
                     </div>
                 </div>
             </form>
             <div style="display: none;text-align: center;" id="complete">
                 <h1>安装完成!</h1><br><br><br>
-                <img src="/uploads/code.jpg">
                 <p>手机端访问地址：{$_SERVER['HTTP_HOST']}/h5/index.html</p>
                 <a href="/cms" class="layui-btn blue">访问后台</a>
             </div>

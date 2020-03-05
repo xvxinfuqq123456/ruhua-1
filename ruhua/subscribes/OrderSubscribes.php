@@ -10,6 +10,7 @@ namespace subscribes;
 
 use app\model\Goods as GoodsModel;
 use app\model\Order as OrderModel;
+use app\model\OrderLog as OrderLogModel;
 use app\model\PtItem;
 use app\services\DeliveryMessage;
 use app\services\GzhDeliveryMessage;
@@ -38,6 +39,13 @@ class OrderSubscribes
         GoodsModel::checkStock($data['order_goods']);
     }
 
+    public function onInvoiceLog($event)
+    {
+        if(app('system')->getValue('is_invoice') == 1) {
+            OrderLogModel::addInvoiceLog($event);
+        }
+    }
+
     /**
      * 扣除库存
      * @param $event
@@ -56,7 +64,7 @@ class OrderSubscribes
      */
     public function onCheckItem($event)
     {
-        if(app('system')->getValue('is_pt') == 1) {
+        if(config('setting.is_business') == 1) {
             PtItem::checkItemUser($event);
         }
 

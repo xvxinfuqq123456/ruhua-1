@@ -81,12 +81,12 @@ class Product extends BaseController
             $ids=$id;
         }
         $data = GoodsModel::with('imgs')->where(['state'=>1,'category_id'=>$ids])->select();
-        if (app('system')->getValue('is_discount') == 1) {
+        if (config('setting.is_business') == 1) {
             foreach ($data as $k => $v) {
                 $data[$k]['discount'] = DiscountGoodsModel::getDiscountGoods($v['goods_id']);
             }
         }
-        if (app('system')->getValue('is_pt') == 1) {
+        if (config('setting.is_business')) {
             foreach ($data as $k => $v) {
                 $data[$k]['pt'] = PtGoodsModel::getPtGoods($v['goods_id']);
             }

@@ -93,7 +93,7 @@ class UserOrder extends BaseController
             'goods_id' => 'require',
             'rate' => 'require',
             'content' => 'require',
-            'imgs' => 'require',
+            'imgs' => 'min:0',
         ];
         $post = input('post.');
         $this->validate($post,$rule);

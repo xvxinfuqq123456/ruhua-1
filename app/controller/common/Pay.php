@@ -59,4 +59,20 @@ class Pay extends BaseController
         $notify->Handle();
     }
 
+    //app支付
+    public function getAppPayData($id = ''){
+        (new IDPostiveInt())->goCheck();
+        $pay = new AppPayService($id);
+        return $pay->pay();
+    }
+
+//小程序支付回调
+    public function appNotify()
+    {
+        $order_num = input('post.order_num');
+        $notify = new NotifyService();
+        $res = $notify->NotifyEditOrder($order_num);
+        return app('json')->success($res);
+    }
+
 }

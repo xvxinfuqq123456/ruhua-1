@@ -81,13 +81,10 @@ class PayService
     private function getPaySignature($wxOrderData)
     {
         $wxOrder = WxPayApi::unifiedOrder($wxOrderData);    //获取预支付id:prepay_id
-        if ($wxOrder['return_code'] != 'SUCCESS' ||
-            $wxOrder['result_code'] != 'SUCCESS'
-        )
-
-        {
+        if ($wxOrder['return_code'] != 'SUCCESS' || $wxOrder['result_code'] != 'SUCCESS') {
             \think\facade\Log::record($wxOrder, 'error');
             \think\facade\Log::record('获取预支付订单失败', 'error');
+            throw new BaseException(['msg'=>$wxOrder['err_code_des']]);
         }
         //prepay_id
         $this->recordPreOrder($wxOrder);
@@ -126,10 +123,10 @@ class PayService
 
     private function checkOrderValid()
     {
-        $order = OrderModel::where('order_id', $this->orderID)->find();
+        $order = OrderModel::where('order_id', $this->orderID)->where('state',0)->find();
         if (!$order)
         {
-            throw new BaseException(['msg' => '订单不存在']);
+            throw new BaseException(['msg' => '订单不存在或已过期']);
         }
         if (!TokenService::isValidOperate($order->user_id))
         {

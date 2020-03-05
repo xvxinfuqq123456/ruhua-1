@@ -56,13 +56,13 @@ class CmsService implements RoleInterface
                 $query->field('id,nickname,headpic');
             }])->where('order_num', 'like', '%' . $key . '%')
                 ->order('create_time desc')
-                ->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message', true)
+                ->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time', true)
                 ->select();
         } else {
             $data = OrderModel::with(['ordergoods.imgs', 'users' => function ($query) {
                 $query->field('id,nickname,headpic');
             }])
-                ->order('create_time desc')->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message', true)
+                ->order('create_time desc')->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time', true)
                 ->select();
         }
         return $data;

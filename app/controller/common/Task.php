@@ -16,6 +16,15 @@ class Task extends BaseController
 {
 
     /**
+     * 1天执行一次的定时任务 如：分销自动打款
+     *  @return mixed
+     */
+    public function getDayRefresh()
+    {
+        return (new TaskService())->TxTask();
+    }
+
+    /**
      * 3小时定时任务 删除过期优惠券、未购买会员的订单等
      * @return mixed
      */

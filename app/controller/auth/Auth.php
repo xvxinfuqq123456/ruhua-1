@@ -3,6 +3,7 @@
 namespace app\controller\auth;
 
 
+use app\services\MergeService;
 use exceptions\TokenException;
 use app\model\User as UserModel;
 use think\facade\Log;
@@ -69,10 +70,11 @@ class Auth
         $session_key = Token::getCurrentTokenVar('session_key');
         $nickname = base64_encode($nickname);
         $user = UserModel::where('id', $uid)->find();
-        if (!$user['unionid']) {
+        $mergeMode = app('system')->getValue('merge_mode');
+        if (!$user['unionid'] && $mergeMode == 1) {
             $unionid = (new demoWxCode())->getUnionId($keys, $iv, $session_key);
             if ($unionid < 0) {
-            }else{
+            } else {
                 $data['unionid'] = $unionid;
             }
 
@@ -101,6 +103,14 @@ class Auth
         $token = $usertoken->getToken($authResult);
         $data = ['token' => $token];
         return json($data);
+    }
+
+    /**
+     * 合并测试
+     */
+    public function testGetToken()
+    {
+        return (new MergeService())->mergeUser(15, 'openid', 'oq_jb4mLWx97WOEn7x38yM0YkFhs', 2);
     }
 
 }

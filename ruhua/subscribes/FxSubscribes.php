@@ -28,26 +28,12 @@ class FxSubscribes
     }
 
     /**
-     * 检测是否开启分销，是否有绑定人，綁定人
-     * @param $event
-     * @return int
-     * @throws OrderException
-     */
-    public function onCheckFxBind($event)
-    {
-        list($user)=$event;
-        if(app('system')->getValue('fx_status') == 1){
-            FxBindModel::editBind($user);
-        }
-    }
-
-    /**
      * 添加商品分销提现记录
      * @param $event
      */
     public function onAddGoodsFxRecord($event){
         list($oid,$uid)=$event;
-        if(app('system')->getValue('fx_status') == 1) {
+        if(app('system')->getValue('fx_status') != 0) {
             FxRecord::addRecord($oid, $uid);
         }
     }
@@ -58,7 +44,7 @@ class FxSubscribes
      */
     public function onAddVipFxRecord($event){
         list($oid,$uid)=$event;
-        if(app('system')->getValue('fx_status') == 1) {
+        if(app('system')->getValue('fx_status') != 0) {
             FxRecord::addVipRecord($oid, $uid);
         }
     }

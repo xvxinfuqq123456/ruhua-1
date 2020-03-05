@@ -16,7 +16,7 @@ class Coupon extends BaseModel
 {
     protected $type = [
         'start_time' => 'timestamp:Y-m-d',
-        'end_time'  =>  'timestamp:Y-m-d',
+        'end_time' => 'timestamp:Y-m-d',
     ];
 
     /**
@@ -37,7 +37,7 @@ class Coupon extends BaseModel
                 }
             }
         }
-        if($post['status']!=1&&$post['status']!=2){
+        if ($post['status'] != 1 && $post['status'] != 2) {
             return app('json')->fail('优惠券status错误');
         }
         if (array_key_exists('goods_ids', $post)) {
@@ -71,15 +71,18 @@ class Coupon extends BaseModel
         $data['full'] = $post['full'];
         $data['reduce'] = $post['reduce'];
         $data['name'] = $post['name'];
-        if (array_key_exists('start_time', $post)) {
+        if ($post['start_time']) {
             $data['start_time'] = $post['start_time'];
-            if (!array_key_exists('end_time', $post)) {
+            if (!$post['end_time']) {
                 throw new BaseException(['msg' => 'end_time未填']);
             }
             $data['end_time'] = $post['end_time'];
         }
-        if (array_key_exists('day', $post) && !array_key_exists('start_time', $post)) {
+        if ($post['day'] && !$post['start_time']) {
             $data['day'] = $post['day'];
+        }
+        if(!$post['start_time']&& !$post['day']){
+            throw new BaseException(['msg' => '请设置用券时间']);
         }
         return $data;
     }

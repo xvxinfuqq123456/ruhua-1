@@ -10,6 +10,7 @@ namespace app\services;
 
 
 use app\model\FxOrder as FxOrderModel;
+use app\model\FxRecord as FxRecordModel;
 use app\model\Order as OrderModel;
 use app\model\PtItem as PtItemModel;
 use app\model\UserCoupon as UserCouponModel;
@@ -19,12 +20,28 @@ class TaskService
 {
 
     /**
+     * 自动提现任务
+     * @return mixed
+     */
+    public function TxTask()
+    {
+        try {
+            (new FxRecordModel)->taskTx(); //定时打款
+        } catch (\Exception $e) {
+            return app('json')->fail($e);
+        }
+        return app('json')->success();
+    }
+
+
+    /**
      * 每日任务
      * @return mixed
      */
     public function DayTask()
     {
         try {
+            FxOrderModel::deleteOrder(); //删除会员订单
             UserCouponModel::delUserCoupon();//删除用户过期优惠券
         } catch (\Exception $e) {
             return app('json')->fail($e->getMessage());
@@ -40,7 +57,7 @@ class TaskService
     {
         try {
             OrderModel::closeOrder(); //关闭订单
-            if (app('system')->getValue('is_pt')) {
+            if (config('setting.is_business')) {
                 PtItemModel::closeItem();//关闭拼团订单并退款
             }
         } catch (\Exception $e) {
@@ -86,9 +103,7 @@ class TaskService
             $interval = 15*60; // 每隔15分钟运行
             do {
                 OrderModel::closeOrder(); //关闭订单
-                if (app('system')->getValue('is_pt')) {
-                    PtItemModel::closeItem();//关闭拼团订单并退款
-                }
+                PtItemModel::closeItem();//关闭拼团订单并退款
                 sleep($interval); // 按设置的时间等待15分钟循环执行
                 $str = file_get_contents(VAE_ROOT . "data/taskstate.lock");
                 Log::error('循环任务状态' . $str);

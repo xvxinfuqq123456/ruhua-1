@@ -10,6 +10,7 @@ namespace app\controller\cms;
 
 use app\model\Category as CategoryModel;
 use app\validate\IDPostiveInt;
+use bases\BaseCommon;
 use bases\BaseController;
 use services\QyFactory;
 
@@ -60,7 +61,7 @@ class CategoryManage extends BaseController
     {
         $article=(new QyFactory())->instance('CmsService');
         $data=$article->get_category_list();
-        $data = subTree($data);
+        $data = (new BaseCommon())->subTree($data);
         return app('json')->success($data);
     }
 

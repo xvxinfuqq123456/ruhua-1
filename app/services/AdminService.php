@@ -10,8 +10,9 @@ namespace app\services;
 
 
 use app\model\Admin as AdminModel;
-use app\model\Group as GroupModel;
+use bases\BaseCommon;
 use enum\ScopeEnum;
+use think\facade\Db;
 
 class AdminService extends TokenService
 {
@@ -44,7 +45,7 @@ class AdminService extends TokenService
             return app('json')->fail('用户名已存在');
         }
         $data['username'] = $post['username'];
-        $data['password'] = password($post['password']);
+        $data['password'] = (new BaseCommon())->password($post['password']);
         $data['group_id'] = $post['gid'];
         if (array_key_exists('description', $post)) {
             $data['description'] = $post['description'];
@@ -65,15 +66,14 @@ class AdminService extends TokenService
      */
     public function loginService($user, $pwd)
     {
-        // $password = password($pwd);    //common文件的函数
         $password = $pwd;
         $where['username'] = $user;
-        $where['password'] = password($password);
-        $user = AdminModel::where($where)->find();
+        $where['password'] = (new BaseCommon())->password($password);
+        $user = Db::name('Admin')->where($where)->find();
         if (!$user) {
             return app('json')->fail('账号或密码错误');
         }
-        if ($user->state == 1) {
+        if ($user['state'] == 1) {
             return app('json')->fail('已禁用');
         }
         $cachedValue = $this->setWxCache($user);//仅组合
@@ -89,9 +89,11 @@ class AdminService extends TokenService
      */
     private function setWxCache($user)
     {
-        $cache['admin_id'] = $user->id;
-        $cache['username'] = $user->username;
-        $cache['uniacid'] = $user->uniacid;
+        if (array_key_exists('uniacid', $user)) {
+            $cache['uniacid'] = $user['uniacid'];
+        }
+        $cache['admin_id'] = $user['id'];
+        $cache['username'] = $user['username'];
         $cache['scope'] = ScopeEnum::Root;  // scope=16 代表App用户的权限数值
         return $cache;
     }
@@ -108,10 +110,10 @@ class AdminService extends TokenService
         if (!$admin) {
             return app('json')->fail('用户信息错误');
         }
-        if ($admin->password != password($form['old_psw'])) {
+        if ($admin->password != (new BaseCommon())->password($form['old_psw'])) {
             return app('json')->fail('原密码错误');
         }
-        $admin->password = password($form['new_psw']);
+        $admin->password = (new BaseCommon())->password($form['new_psw']);
         $res = $admin->save();
         if (!$res) {
             return app('json')->fail();

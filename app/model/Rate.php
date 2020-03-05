@@ -24,6 +24,28 @@ class Rate extends BaseModel
         return $this->belongsTo('Goods','goods_id','goods_id');
     }
 
+    public function getImgsAttr($v){
+        if(!$v){
+            return '';
+        }
+        return explode(',',$v);
+    }
+
+    /**
+     * 添加评价
+     * @param $post
+     * @return mixed
+     */
+    public static function addRate($post){
+        $post['user_id'] = 0;
+        $post['order_id'] = 0;
+        $post['imgs']=json_encode($post['imgs'],JSON_UNESCAPED_UNICODE);
+        $post['create_time']=strtotime($post['create_time']);
+        $res=new self();
+        $res=$res->isAutoWriteTimestamp('false')->create($post);
+        return app('json')->success($res['id']);
+    }
+
     /**
      * 添加回复
      * @param $post

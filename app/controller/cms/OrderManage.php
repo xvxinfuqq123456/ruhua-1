@@ -23,7 +23,7 @@ class OrderManage extends BaseController
      */
     public function checkDrive()
     {
-        $res = OrderModel::where(['state'=>0,'payment_state'=>1,'shipment_state'=>0])->count();
+        $res = OrderModel::where(['state' => 0, 'payment_state' => 1, 'shipment_state' => 0])->count();
         return app('json')->success($res);
     }
 
@@ -37,7 +37,7 @@ class OrderManage extends BaseController
     {
         (new IDPostiveInt)->goCheck();
         $result = OrderModel::where('order_id', $id)->find(); //这里是软删除
-        if(!$result){
+        if (!$result) {
             return app('json')->fail();
         }
         if (!$result->delete(config('setting.soft_del'))) {
@@ -56,7 +56,21 @@ class OrderManage extends BaseController
         $key = $this->request->param('keywords') ?: '';
         $order = (new QyFactory())->instance('CmsService');
         $order->set_param($key);
-        $data=$order->get_order_list();
+        $data = $order->get_order_list();
+        return app('json')->success($data);
+    }
+
+    /**
+     * mscs获取订单
+     * @return string
+     */
+    public function mCmsGetOrder()
+    {
+        $data = OrderModel::with(['ordergoods.imgs', 'users' => function ($query) {
+            $query->field('id,nickname,headpic');
+        }])
+            ->order('create_time desc')->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time', true)
+            ->select();
         return app('json')->success($data);
     }
 
@@ -69,7 +83,7 @@ class OrderManage extends BaseController
     {
         (new IDPostiveInt())->goCheck();
         $order = (new QyFactory())->instance('CmsService');
-        $data=$order->get_order_detail($id);
+        $data = $order->get_order_detail($id);
         return app('json')->success($data);
     }
 

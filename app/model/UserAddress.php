@@ -39,7 +39,7 @@ class UserAddress extends BaseModel
             try {
                 $post['user_id'] = $uid;
                 $post['is_default'] = 1;
-                $region=Region::where('name',$post['county'])->where('level',3)->find();
+                $region=Db::name('region')->where('name',$post['county'])->where('level',3)->find();
                 if(!$region){
                     return app('json')->fail('地区不存在');
                 }

@@ -203,7 +203,7 @@ class StatisticService
     {
         $month = input('post.month');
         $time = self::getTime($month);
-        $data = FxRecord::with(['agent.user', 'user'])->whereMonth('create_time', $time['time'])->select();
+        $data = FxRecord::with(['agent', 'user'])->whereMonth('create_time', $time['time'])->select();
         $arr = [];
         $res = [];
         foreach ($data as $k => $v) {
@@ -211,12 +211,14 @@ class StatisticService
                 $arr['agent_id'] = $v['agent_id'];
                 $arr['num'] = 1;
                 $arr['all_money'] = $v['money'];
-                $arr['nickname'] = $v['agent']['user']['nickname'];
-                $arr['headpic'] = $v['agent']['user']['headpic'];
-                if ($v['status'] == 0) {
-                    $arr['money'] = $v['money'];
+                $arr['nickname'] = $v['agent']['nickname'];
+                $arr['headpic'] = $v['agent']['headpic'];
+                $arr['finish_money'] = 0;
+                $arr['money'] = 0;
+                if ($v['status'] == 2) {
+                    $arr['finish_money'] = $v['money'];
                 } else {
-                    $arr['money'] = 0;
+                    $arr['money'] = $v['money'];
                 }
                 array_push($res, $arr);
                 continue;
@@ -225,7 +227,9 @@ class StatisticService
                 if ($v['agent_id'] == $vv['agent_id']) {
                     $res[$kk]['num'] += 1;
                     $res[$kk]['all_money'] += $v['money'];
-                    if ($v['status'] == 0) {
+                    if ($v['status'] == 2) {
+                        $res[$kk]['finish_money'] += $v['money'];
+                    }else {
                         $res[$kk]['money'] += $v['money'];
                     }
                     break;
@@ -236,10 +240,12 @@ class StatisticService
                     $arr['all_money'] = $v['money'];
                     $arr['nickname'] = $v['agent']['user']['nickname'];
                     $arr['headpic'] = $v['agent']['user']['headpic'];
-                    if ($v['status'] == 0) {
-                        $arr['money'] = $v['money'];
+                    $arr['finish_money'] = 0;
+                    $arr['money'] = 0;
+                    if ($v['status'] == 2) {
+                        $arr['finish_money'] = $v['money'];
                     } else {
-                        $arr['money'] = 0;
+                        $arr['money'] = $v['money'];
                     }
                     array_push($res, $arr);
                 }

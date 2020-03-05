@@ -14,6 +14,7 @@ use app\model\Image as ImageModel;
 use app\model\Order as OrderModel;
 use app\model\SysConfig as SysConfigModel;
 use app\model\Video;
+use bases\BaseCommon;
 use exceptions\TokenException;
 use kuaidi\Kd;
 use think\facade\Cache;
@@ -157,6 +158,28 @@ class CommonServices
     }
 
     /**
+     * 上传视频
+     * @return mixed
+     */
+    public static function uploadVideo()
+    {
+        $file = request()->file('file');
+        if (!$file) {
+            return app('json')->fail('请上传文件video');
+        }
+        validate(['file' => 'fileSize:10240000'])
+            ->check(['file' => $file]);
+        $fileName = Filesystem::putFile('video', $file, 'uniqid');
+
+        $res = self::video_save('video', $fileName);   //保存视频
+        if ($res['id']) {
+            return app('json')->success($res['id']);
+        } else {
+            return app('json')->fail();
+        }
+    }
+
+    /**
      * 上传的图片信息，录入数据库
      * @param $name
      * @param $use
@@ -169,6 +192,22 @@ class CommonServices
         $data['url'] = '/uploads/' . $use . '/' . $name;
         $data['category_id'] = $cid;
         $res = ImageModel::create($data);
+        return $res;
+    }
+
+    /**
+     * 上传的图片信息，录入数据库
+     * @param $name
+     * @param $use
+     * @param $cid
+     * @return \think\Model|static
+     */
+    private static function video_save($use, $name)
+    {
+        $data['use_name'] = $use;
+        $data['url'] = '/uploads/' . $name;
+        $data['description'] = input('post.description');
+        $res = Video::create($data);
         return $res;
     }
 
@@ -196,7 +235,8 @@ class CommonServices
         }
         $code = SysConfigModel::where(['key' => 'appcode'])->value('value');
         $kd = new Kd($code, $order['courier'], $order['courier_num']);
-        return $kd->get();
+        $data=json_decode($kd->get(),true);
+        return json($data);
     }
 
     /**
@@ -245,6 +285,35 @@ class CommonServices
         $qcode = app('json')->getValue('code_url');
         $url = $qcode . $path;
         return $data['qrcode'] = (new QrcodeServer())->get_qrcode($url);
+    }
+
+    //生成小程序码
+    public function getXcxCodeImg($path, $scene, $sf_code = '')
+    {
+        $a = (new AccessToken)->getXcx();
+        $access_token = $a['access_token'];
+        //文档：https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/qr-code/wxacode.getUnlimited.html
+        //必须是已经发布的小程序，未发布的会报错
+        $qcode = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=$access_token";
+
+        if($scene){
+            $scene = $scene . '&sf=' . $sf_code;
+        }else{
+            $scene='?sf=' . $sf_code;
+        }
+        $param = ["page" => $path, 'scene' => $scene, "width" => 140];
+        //POST参数
+        $result = (new BaseCommon())->curl_post($qcode, $param);
+        if($path){
+            //返回图片base数据给前端小程序，直接放前端img src即可显示;
+            $base64_image = "data:image/jpeg;base64," . base64_encode($result);
+            return $base64_image;
+        }
+        $date = date('Ymd', time());
+        $filename = $date . uniqid() . '.jpg'; //定义图片名字及格式
+        file_put_contents('./uploads/code/' . $filename, $result);    //保存小程序码到服务器
+        $url = '/uploads/code/';
+        return $url . $filename;
     }
 
     private function getCodeUrl()

@@ -51,6 +51,15 @@ class Common extends BaseController
         return CommonServices::uploadImg($use, $back, 0, $cid);
     }
 
+    /**
+     * 上传视频
+     * @return mixed
+     */
+    public function uploadVideo()
+    {
+        return CommonServices::uploadVideo();
+    }
+
 
     /**
      * 下载图片

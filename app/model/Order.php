@@ -64,13 +64,16 @@ class Order extends BaseModel
             $data['content'] = $post['content'];
             $data['order_id'] = $order_id;
             $data['goods_id'] = $post['goods_id'];
-            $data['imgs'] = $post['imgs'];
+            $data['imgs'] = implode(',',$post['imgs']);
             $data['create_time'] = time();
         }
         Db::startTrans();
         try {
             OrderGoods::where(['order_id' => $post['id'], 'user_id' => $uid, 'goods_id' => $post['goods_id']])->update(['state' => 2]);
-            $order->save(['state' => 2]);
+            $status=OrderGoods::Where(['order_id' => $post['id'],'state'=>1])->find();
+            if(!$status){
+                $order->save(['state' => 2]);
+            }
             Rate::create($data);
             Db::commit();
         } catch (\Exception $e) {
@@ -277,6 +280,7 @@ class Order extends BaseModel
             $order = self::where('order_id', $param['order_id'])->find();
             $order['edit_money'] = $param['price'];
             $order['order_money'] = $order['order_money'] + $order['edit_money'];
+            $order['order_num'] = $order['order_num'].'B';
             if ($order['order_money'] <= 0) {
                 return app('json')->fail('价格错误');
             }
