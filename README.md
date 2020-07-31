@@ -12,7 +12,7 @@
 ##### 手册： https://www.yuque.com/u158056/bek6g2
 ##### 官网： http://www.ruhuashop.com 
 ##### QQ群： 728615087
-
+##### 前端： https://github.com/baok1592/ruhua_vue
 
 #### 安装与使用教程
 安装包约12MB，由于包含thinkphp核心包与后台CMS文件，所以较大。
