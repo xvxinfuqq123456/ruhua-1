@@ -36,13 +36,13 @@ class WXBizDataCrypt
 	public function decryptData( $encryptedData, $iv, &$data )
 	{
 		if (strlen($this->sessionKey) != 24) {
-			return ErrorCode::$IllegalAesKey;
+			return ['ErrorCode'=>ErrorCode::$IllegalAesKey];
 		}
 		$aesKey=base64_decode($this->sessionKey);
 
         
 		if (strlen($iv) != 24) {
-			return ErrorCode::$IllegalIv;
+			return ['ErrorCode'=>ErrorCode::$IllegalIv];
 		}
 		$aesIV=base64_decode($iv);
 
@@ -53,11 +53,11 @@ class WXBizDataCrypt
 		$dataObj=json_decode( $result );
 		if( $dataObj  == NULL )
 		{
-			return ErrorCode::$IllegalBuffer;
+			return ['ErrorCode'=>ErrorCode::$IllegalBuffer];
 		}
 		if( $dataObj->watermark->appid != $this->appid )
 		{
-			return ErrorCode::$IllegalBuffer;
+			return ['ErrorCode'=>ErrorCode::$IllegalBuffer];
 		}
 		$data = $result;
 		return ['ErrorCode'=>ErrorCode::$OK,'data'=>$data];

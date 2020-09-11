@@ -5,12 +5,14 @@ namespace app\services;
 use app\model\Template;
 use app\model\User as UserModel;
 use exceptions\BaseException;
+use think\facade\Log;
 
 //公众号模板消息
 class GzhDeliveryMessage extends GzhMessage
 {
     public function sendDeliveryMessage($data,$type,$ids='')
     {
+
         if (!$data) {
             return '';
         }

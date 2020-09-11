@@ -91,12 +91,13 @@ class UserOrder extends BaseController
         $rule=[
             'id' => 'require|number',
             'goods_id' => 'require',
-            'rate' => 'require',
+            'rate' => 'number',
             'content' => 'require',
             'imgs' => 'min:0',
         ];
         $post = input('post.');
         $this->validate($post,$rule);
+        $post['rate']=$post['rate']<1?5:$post['rate'];
         return OrderModel::setPj($uid,$post);
     }
 
@@ -147,5 +148,7 @@ class UserOrder extends BaseController
         (new IDPostiveInt)->goCheck();
         return CommonServices::getCourier($id);
     }
+
+
 
 }

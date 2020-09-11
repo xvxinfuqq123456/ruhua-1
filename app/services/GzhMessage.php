@@ -29,22 +29,20 @@ class GzhMessage
         $this->sendUrl = sprintf($this->sendUrl, $token['access_token']);//把百分号（%）符号替换成一个作为参数进行传递的变量：
     }
 
-    // 开发工具中拉起的微信支付prepay_id是无效的，需要在真机上拉起支付
+    // 公众号发送模板消息
     protected function sendMessage($openID)
     {
-        Log::error('sendMessage');
         $data = [
             'touser' => $openID,
             'template_id' => $this->tplID,
             'url'=>"",
             'data' => $this->data,
         ];
-      //dump($data);
-      //exit;
+        //Log::error('url:'.$this->sendUrl);
+        //Log::error('sendMessage:'.json_encode($data,JSON_UNESCAPED_UNICODE));
         $result = (new BaseCommon())->curl_post($this->sendUrl, $data);
         $result = json_decode($result, true);
-      
-        Log::error($result);
+
         if ($result['errcode'] == 0) {
             return true;
         } else {

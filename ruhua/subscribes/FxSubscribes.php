@@ -13,6 +13,7 @@ use app\model\FxAgent as FxAgentModel;
 use app\model\FxBind as FxBindModel;
 use app\model\FxBind;
 use app\model\FxRecord;
+use think\facade\Log;
 
 /**
  * 分销事件
@@ -33,6 +34,7 @@ class FxSubscribes
      */
     public function onAddGoodsFxRecord($event){
         list($oid,$uid)=$event;
+        Log::error("进入自动提现事件");
         if(app('system')->getValue('fx_status') != 0) {
             FxRecord::addRecord($oid, $uid);
         }

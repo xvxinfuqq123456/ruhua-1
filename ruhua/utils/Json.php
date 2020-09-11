@@ -24,6 +24,18 @@ class Json
         return Response::create($res, 'json', $this->code);
     }
 
+    public function go($data): Response
+    {
+        if(is_array($data)){
+            return $this->success('操作成功', $data);
+        }
+        if (is_string($data) || !$data) {
+            return $this->fail('操作失败');
+        } else{
+            return $this->success('操作成功', $data);
+        }
+    }
+
     //操作成功
     public function success($obj = '操作成功', $data = 1): Response
     {

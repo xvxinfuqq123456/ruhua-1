@@ -10,6 +10,7 @@ namespace app\model;
 
 
 use bases\BaseModel;
+use exceptions\OrderException;
 
 class Rate extends BaseModel
 {
@@ -32,14 +33,21 @@ class Rate extends BaseModel
     }
 
     /**
-     * 添加评价
+     * cms添加评价
      * @param $post
      * @return mixed
      */
     public static function addRate($post){
         $post['user_id'] = 0;
         $post['order_id'] = 0;
-        $post['imgs']=json_encode($post['imgs'],JSON_UNESCAPED_UNICODE);
+        $imgmodel=new Image();
+        if($post['headpic']) {
+            $post['headpic'] = $imgmodel->where('id', $post['headpic'])->value('url');
+        }
+        if($post['imgs']) {
+            $url_list=$imgmodel->where('id','in',$post['imgs'])->column('url');
+            $post['imgs']=implode(",",$url_list);
+        }
         $post['create_time']=strtotime($post['create_time']);
         $res=new self();
         $res=$res->isAutoWriteTimestamp('false')->create($post);

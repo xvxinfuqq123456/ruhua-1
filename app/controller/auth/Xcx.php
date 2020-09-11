@@ -38,6 +38,7 @@ class Xcx extends Token
     //获取token，openid
     public function getToken()
     {
+
         //注意code是临时的，所以向微信服务器提交只能使用一次
         $result = (new BaseCommon())->curl_get($this->wxLoginUrl);
         $wxResult = json_decode($result, true);

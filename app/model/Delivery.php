@@ -12,6 +12,7 @@ namespace app\model;
 use bases\BaseModel;
 use exceptions\BaseException;
 use think\facade\Db;
+use think\facade\Log;
 
 class Delivery extends BaseModel
 {
@@ -132,7 +133,6 @@ class Delivery extends BaseModel
             if(!$goods){
                 throw new BaseException(['msg'=>'商品不存在']);
             }
-
             foreach ($goods['delivery']['rule'] as $key => $value) {
                 if (in_array($region_id, $value['region'])) {
                     if (!$arr) {
@@ -157,6 +157,7 @@ class Delivery extends BaseModel
                 }
             }
         }
+        Log::error("city:".$region_id.";rule:".json_encode($arr));
         foreach ($arr as $k => $v) {
             if ($v['additional'] && $v['num'] > $v['first']) {
                 $money = $v['first_fee'] + ceil(($v['num'] - $v['first']) / $v['additional']) * $v['additional_fee'];

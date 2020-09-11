@@ -15,6 +15,7 @@ use exceptions\OrderException;
 use exceptions\ProductException;
 use think\Exception;
 use think\facade\Db;
+use think\facade\Log;
 use think\model\concern\SoftDelete;
 
 class Goods extends BaseModel
@@ -86,23 +87,30 @@ class Goods extends BaseModel
     {
         Db::startTrans();// 启动事务
         try {
+            Log::error($post);
             $post['img_id'] = $post['banner_imgs'][0];
+
             $post['banner_imgs'] = implode(',', $post['banner_imgs']);
+
             $res = self::create($post);
+
             if (input('?post.sku')) {
                 $arr = input('post.sku');
                 $sku_img_ids = input('post.sku_img_ids');
                 (new GoodsSku())->addSku($res['id'], $arr, $sku_img_ids);//添加sku
             }
+
             Db::commit();
             if ($res) {
                 return app('json')->success();
             }
             return app('json')->fail();
         } catch (Exception $e) {
-            // 回滚事务
-            Db::rollback();
-            throw new ProductException(['msg' => '商品添加失败']);
+            Db::rollback(); // 回滚事务
+            Log::error($e->getMessage());
+            if($post['img_id']==null)
+                throw new ProductException(['msg' => '请选择图片']);
+            throw new ProductException(['msg' => '商品添加失败'.$e->getMessage()]);
         }
     }
 
@@ -157,15 +165,16 @@ class Goods extends BaseModel
         Db::startTrans();// 启动事务
         try {
             $res = self::save($data, ['goods_id' => $post['goods_id']]);
-            $arr = input('post.sku');
-            $sku_img_ids = input('post.sku_img_ids');
-            (new GoodsSku())->editSku($post['goods_id'], $arr, $sku_img_ids); //修改sku
+            /*$arr = input('post.sku');
+            if($arr) {
+                $sku_img_ids = input('post.sku_img_ids');
+                (new GoodsSku())->editSku($post['goods_id'], $arr, $sku_img_ids); //修改sku
+            }*/
         } catch (Exception $e) {
             // 回滚事务
             Db::rollback();
             throw new ProductException(['msg' => '商品修改失败' . $e->getMessage()]);
         }
-
         if (!$res) {
             return app('json')->fail();
         }
@@ -219,9 +228,10 @@ class Goods extends BaseModel
      */
     public static function getProduct($id)
     {
-        $res = self::with(['imgs','sku', 'delivery'])->where('goods_id', $id)->find();
+        $res = self::with(['imgs','video','sku', 'delivery'])->where('goods_id', $id)->find();
         $url = [];
         $list = [];
+
         if (!empty($res['banner_imgs'])) {
             $imgs = Image::where('id', 'in', $res['banner_imgs'])->select();
             foreach ($imgs as $k => $v) {
@@ -229,6 +239,7 @@ class Goods extends BaseModel
                 $list[$k] = $v;
             }
         }
+        //评论
         $res['rate'] = Rate::with('user')->where('goods_id', $id)->order('id desc')->limit(1)->select();
         $num = Rate::where('goods_id', $id)->count();
         $res['rate_fen'] = 0;
@@ -237,7 +248,7 @@ class Goods extends BaseModel
             $fen = Rate::where('goods_id', $id)->sum('rate');
             $res['rate_fen'] = round($fen * 20 / $num, 2);
         }
-
+        //banner
         $res['banner_imgs'] = explode(',', $res['banner_imgs']);
         $res['banner_imgs_url'] = $url;
         $res['banner_imgs_list'] = $list;
@@ -255,12 +266,7 @@ class Goods extends BaseModel
         } else {
             $res['sku_arr'] = [];
         }
-        if (config('setting.is_business') == 1) {
-            $res['discount'] = DiscountGoods::getDiscountGoods($id);
-        }
-        if (config('setting.is_business') == 1) {
-            $res['pt'] = PtGoods::getPtGoods($id);
-        }
+        $business=config('setting.is_business');
         return app('json')->success($res);
     }
 
@@ -283,16 +289,6 @@ class Goods extends BaseModel
         }
         if (!$data || count($data) < 1) {
             return;//throw new BaseException(['msg'=>'获取最新商品失败或无数据']);
-        }
-        if (config('setting.is_business') == 1) {
-            foreach ($data as $k => $v) {
-                $data[$k]['discount'] = DiscountGoods::getDiscountGoods($v['goods_id']);
-            }
-        }
-        if (config('setting.is_business') == 1) {
-            foreach ($data as $k => $v) {
-                $data[$k]['pt'] = PtGoods::getPtGoods($v['goods_id']);
-            }
         }
         return $data;
     }
@@ -339,10 +335,10 @@ class Goods extends BaseModel
     public static function getProductByPage($key = '')
     {
         if (!empty($key)) {
-            $data = self::with(['imgs'])->where(['state' => 1])->where('goods_name', 'like', '%' . $key . '%')
+            $data = self::with(['imgs','video'])->where(['state' => 1])->where('goods_name', 'like', '%' . $key . '%')
                 ->order('create_time desc')->select();
         } else {
-            $data = self::with(['imgs'])->where(['state' => 1])->order('create_time desc')->select();
+            $data = self::with(['imgs','video'])->where(['state' => 1])->order('create_time desc')->select();
         }
         return app('json')->success($data);
     }

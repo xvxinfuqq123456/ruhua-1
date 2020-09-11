@@ -9,6 +9,8 @@
 namespace bases;
 
 
+use exceptions\BaseException;
+
 class BaseCommon
 {
     function curl_get($url, &$httpCode = 0)

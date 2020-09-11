@@ -1,19 +1,10 @@
 <?php
-// +----------------------------------------------------------------------
-// | vaeThink [ Programming makes me happy ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2018 http://www.vaeThink.com All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: 听雨 < 389625819@qq.com >
-// +---------------------------------------------------------------------
 namespace app\controller\install;
 
-use app\services\QrcodeServer;
 use app\validate\InstallValidate;
 use bases\BaseCommon;
 use bases\BaseController;
+use exceptions\BaseException;
 use mysqli;
 use think\facade\View;
 
@@ -114,7 +105,7 @@ class Index extends BaseController
             //插入管理员
             $username = input('post.username');
             $password = input('post.password');
-            $password = (new BaseCommon)->password($password);
+            $password = (new BaseCommon())->password($password);
             $create_time = time();
 
             $caeate_admin_sql = "INSERT INTO " . "`".$data['DB_PREFIX'] . "admin"."` "

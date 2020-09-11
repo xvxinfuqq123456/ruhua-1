@@ -31,4 +31,5 @@ class UserRate extends BaseController
         return app('json')->success($pj);
     }
 
+
 }

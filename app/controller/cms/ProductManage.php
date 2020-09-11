@@ -99,7 +99,8 @@ class ProductManage extends BaseController
      */
     public function all_goods_info()
     {
-        $res = GoodsModel::with('imgs')->field('goods_id,goods_name,market_price,price,stock,sales,is_hot,is_new,state,img_id,sort')->select();
+        $res = GoodsModel::with('imgs')->field('goods_id,goods_name,market_price,price,stock,sales,is_hot,is_new,state,img_id,sort')
+            ->order('goods_id desc')->select();
         return app('json')->success($res);
     }
 
@@ -124,7 +125,7 @@ class ProductManage extends BaseController
             'goods_name' => 'require',//名称
             'stock' => 'require',  //库存
             'sales' => 'max:200',  //销量
-            'market_price' => 'require|isNotEmpty', //市场价格
+            'market_price' => 'require', //市场价格
             'price' => 'require', //单价
         ];
         $post = input('post.');

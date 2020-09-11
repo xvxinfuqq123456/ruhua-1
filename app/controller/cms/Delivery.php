@@ -68,11 +68,12 @@ class Delivery extends BaseController
        return  json($data);
     }
 
+    //计算运费
     public function getShipmentPrice(){
         $post= input('post.');
         $uid=TokenService::getCurrentUid();
         $user_data = UserAddress::where('user_id', $uid)->where('is_default', 1)->find();
-        $price= DeliveryModel::computeShipping($user_data['region_id'],$post);
+        $price= DeliveryModel::computeShipping($user_data['region_id'],$post);  //某城市运费
         return app('json')->success($price);
     }
 }

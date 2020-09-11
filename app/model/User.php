@@ -30,15 +30,7 @@ class User extends BaseModel
      */
     public static function getAllUser()
     {
-        $res = self::with('vip')->field('id,nickname,headpic,points,web_auth_id,create_time')->select();
-        foreach ($res as $k => $v) {
-            if ($v['vip']) {
-                unset($res[$k]['vip']);
-                $res[$k]['vip'] = 1;
-            } else {
-                $res[$k]['vip'] = 0;
-            }
-        }
+        $res = self::field('id,nickname,headpic,points,web_auth_id,create_time')->select();
         return app('json')->success($res);
     }
 
@@ -72,11 +64,12 @@ class User extends BaseModel
             return app('json')->fail('已绑定');
         }
         $mobile_user = self::where('mobile', $mobile)->find();
+        $yzm_tmp_id=SysConfig::where('key', 'yzm_tmp_id')->value('value');
         if ($mobile_user) {
             $data['code'] = rand(10000, 999999);
             $data['code_time'] = time() + (60 * 5);
             $mobile_user->save($data);
-            SmsDemo::sendSms($mobile, $data['code']);
+            SmsDemo::sendSms($mobile, $data['code'],$yzm_tmp_id);
             return app('json')->success();
         }
         $user = self::where('id', $uid)->find();
@@ -84,7 +77,7 @@ class User extends BaseModel
         $data['code'] = rand(10000, 999999);
         $data['code_time'] = time() + (60 * 5);
         $user->save($data);
-        SmsDemo::sendSms($mobile, $data['code']);
+        SmsDemo::sendSms($mobile, $data['code'],$yzm_tmp_id);
         return app('json')->success();
     }
 
@@ -149,8 +142,11 @@ class User extends BaseModel
         if (!$user['invite_url']) {
             $user['invite_url'] = ',,';
         }
+        if(!$user['invite_code']){
+            $user['invite_code']=rand(100000, 999999);
+        }
         $invite_url = explode(',', $user['invite_url']);
-        if ($path) {
+        if ($path && $path!="") {
             $url = (new CommonServices())->getXcxCodeImg($path, $scene, $user['invite_code']);
         } else {
             if ($invite_url[0]) {
@@ -159,7 +155,7 @@ class User extends BaseModel
                 $url = (new CommonServices())->getXcxCodeImg($path, $scene, $user['invite_code']);
                 $invite_url[0] = $url;
                 $invite_url = implode(',', $invite_url);
-                $user->save(['invite_url' => $invite_url]);
+                $user->save(['invite_url' => $invite_url, 'invite_code' => $user['invite_code']]);
             }
         }
         return app('json')->success('操作成功', $url);
@@ -171,11 +167,15 @@ class User extends BaseModel
         if (!$user['invite_url']) {
             $user['invite_url'] = ',,';
         }
+        if(!$user['invite_code']){
+            $user['invite_code']=rand(100000, 999999);
+        }
         $invite_url = explode(',', $user['invite_url']);
         $api = app('system')->getValue('api_url');
         if ($path) {
             $code = $api . 'h5/#/' . $path . '&sf=' . $user['invite_code'];
-            $url = (new QrcodeServer())->get_qrcode($code);
+            //$url = (new QrcodeServer())->get_qrcode($code);
+            $url = (new QrcodeServer())->getCodeUrl($code);
         } else {
             if ($invite_url[1]) {
                 $url = $invite_url[1];
@@ -184,7 +184,7 @@ class User extends BaseModel
                 $url = (new QrcodeServer())->getCodeUrl($code);
                 $invite_url[1] = $url;
                 $invite_url = implode(',', $invite_url);
-                $user->save(['invite_url' => $invite_url]);
+                $user->save(['invite_url' => $invite_url, 'invite_code' => $user['invite_code']]);
             }
         }
         return app('json')->success('操作成功', $url);
@@ -192,8 +192,10 @@ class User extends BaseModel
 
     public function vip()
     {
+
         return $this->belongsTo('VipUser', 'id', 'user_id');
     }
+
 
     public function getNicknameAttr($v)
     {

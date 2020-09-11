@@ -9,6 +9,7 @@ use app\model\SysConfig;
 use enum\OrderEnum;
 use exceptions\BaseException;
 use think\Exception;
+use think\facade\Log;
 use WxPay\WxPayApi;
 use WxPay\WxPayData;
 use WxPay\WxPayJsApiPay;
@@ -55,10 +56,12 @@ class PayService
         return json($result);
     }
 
+
     //进行支付
     private function makeWxPreOrder($totalPrice)
     {
         $api_url=SysConfig::where(['key'=>'api_url'])->value('value');
+        Log::error("test***********************");
         $openid = TokenService::getCurrentTokenVar('openid');
         if (!$openid)
         {
@@ -120,7 +123,6 @@ class PayService
         OrderModel::where('order_id', $this->orderID)
             ->update(['prepay_id' =>$wxOrder['prepay_id']]);
     }
-
     private function checkOrderValid()
     {
         $order = OrderModel::where('order_id', $this->orderID)->where('state',0)->find();

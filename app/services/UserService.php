@@ -27,7 +27,7 @@ class UserService implements RoleInterface
     //广告列表
     public function get_banner_list()
     {
-        $data = BannerItemModel::with(['imgs', 'banner'])->where('is_visible', 1)->select();
+        $data = BannerItemModel::with(['imgs', 'banner'])->where('is_visible', 1)->order('sort asc')->select();
         return $data;
     }
 
@@ -91,6 +91,8 @@ class UserService implements RoleInterface
             ->order('order_id desc')->select()->toArray();
         return $data;
     }
+
+
 
     //订单详情
     public function get_order_detail($id)

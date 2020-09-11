@@ -51,7 +51,7 @@ class Article extends BaseController
      */
     public function getTypeArticle($type)
     {
-        $res=ArticleModel::with('img')->where('is_hidden',1)->where('type',$type)->select();
+        $res=ArticleModel::with('img')->where('is_hidden',0)->where('type',$type)->select();
         return app('json')->success($res);
     }
 

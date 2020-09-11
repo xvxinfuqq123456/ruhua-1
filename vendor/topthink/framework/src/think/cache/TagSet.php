@@ -58,6 +58,12 @@ class TagSet
         return true;
     }
 
+    public function get(string $name)
+    {
+        return $this->handler->get($name);
+    }
+
+
     /**
      * 追加缓存标识到标签
      * @access public

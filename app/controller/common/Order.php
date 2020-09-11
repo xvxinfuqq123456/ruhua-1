@@ -13,7 +13,10 @@ use app\services\OrderService;
 use app\services\TokenService;
 use app\validate\ShoppingValidate;
 use bases\BaseController;
+use exceptions\BaseException;
 use think\facade\Log;
+use app\services\NotifyService;
+use app\model\Order as OrderModel;
 
 class Order extends BaseController
 {
@@ -41,6 +44,19 @@ class Order extends BaseController
         $uid = TokenService::getCurrentUid();
         $data =  (new OrderService)->CreateCartOrder($post, $uid);//创建订单
         return app('json')->success($data['id']);
+
+    }
+
+    /**
+     * @param $order_num 订单编号
+     * 订单支付测试，如未删除，请自行删除
+     */
+    public function paytest($order_num)
+    {
+        $noServe=new  NotifyService();
+      //  $list=OrderModel::where('order_num',$order_num)->find();
+        //return app('json')->go($list);
+        return $noServe->NotifyEditOrder($order_num);
 
     }
 

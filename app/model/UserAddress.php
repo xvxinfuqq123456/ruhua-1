@@ -70,6 +70,11 @@ class UserAddress extends BaseModel
         if (!$res) {
             return app('json')->fail('地址不存在');
         }
+        $region=Db::name('region')->where('name',$data['county'])->where('level',3)->find();
+        if(!$region){
+            return app('json')->fail('地区不存在');
+        }
+        $data['region_id']=$region['pid'];
         $status = $res->save($data);
         if (!$status) {
             return app('json')->fail();

@@ -9,6 +9,7 @@ use app\model\User as UserModel;
 use think\facade\Log;
 use WxCode\demoWxCode;
 
+
 class Auth
 {
     /********************  公众号  ************************/
@@ -67,6 +68,7 @@ class Auth
     public function xcx_upinfo($nickname, $headpic, $keys, $iv)
     {
         $uid = Token::getCurrentUid();
+
         $session_key = Token::getCurrentTokenVar('session_key');
         $nickname = base64_encode($nickname);
         $user = UserModel::where('id', $uid)->find();
@@ -99,10 +101,32 @@ class Auth
     /********************  app  ************************/
     public function getAppToken($authResult)
     {
-        $usertoken = new AppToken();
-        $token = $usertoken->getToken($authResult);
+        $token =(new AppToken)->getToken($authResult);
         $data = ['token' => $token];
         return json($data);
+    }
+
+    public function app_wx_login()
+    {
+        $data=input("post.");
+        $where['unionid']=$data['unionId'];
+        $user = UserModel::where($where)->find();
+        if(!$user->openid_app){
+            $user->save(['openid_app'=>$data['openId']]);
+        }
+        $authResult['openid']=$data['openId'];
+        $authResult['unionid']=$data['unionId'];
+        if($user){
+            return $this->getAppToken($authResult);
+        }else{
+            $where['nikename']=base64_encode($data['nickName']);
+            $where['headpic']=$data['avatarUrl'];
+            $res=UserModel::create($where);
+            if($res->id){
+                return $this->getAppToken($authResult);
+            }
+            return app('json')->fail();
+        }
     }
 
     /**

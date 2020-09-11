@@ -66,6 +66,7 @@ class AdminService extends TokenService
      */
     public function loginService($user, $pwd)
     {
+        // $password = password($pwd);    //common文件的函数
         $password = $pwd;
         $where['username'] = $user;
         $where['password'] = (new BaseCommon())->password($password);

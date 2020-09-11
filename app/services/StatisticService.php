@@ -138,13 +138,7 @@ class StatisticService
             ->whereMonth('pay_time', $time['time'])
             ->select();
         foreach ($order as $k => $v) {
-            if ($v['activity_type'] == '限时优惠') {
-                $data['discount_order'] += 1;
-            } else if ($v['activity_type'] == '拼团活动') {
-                $data['pt_order'] += 1;
-            } else {
                 $data['normal_order'] += 1;
-            }
         }
         return app('json')->success($data);
     }
@@ -193,74 +187,6 @@ class StatisticService
         $date['time'] = $start;
         $date['last_time'] = $end;
         return $date;
-    }
-
-    /**
-     * 分销佣金统计排名
-     * @return mixed
-     */
-    public static function countFx()
-    {
-        $month = input('post.month');
-        $time = self::getTime($month);
-        $data = FxRecord::with(['agent', 'user'])->whereMonth('create_time', $time['time'])->select();
-        $arr = [];
-        $res = [];
-        foreach ($data as $k => $v) {
-            if (!$arr) {
-                $arr['agent_id'] = $v['agent_id'];
-                $arr['num'] = 1;
-                $arr['all_money'] = $v['money'];
-                $arr['nickname'] = $v['agent']['nickname'];
-                $arr['headpic'] = $v['agent']['headpic'];
-                $arr['finish_money'] = 0;
-                $arr['money'] = 0;
-                if ($v['status'] == 2) {
-                    $arr['finish_money'] = $v['money'];
-                } else {
-                    $arr['money'] = $v['money'];
-                }
-                array_push($res, $arr);
-                continue;
-            }
-            foreach ($res as $kk => $vv) {
-                if ($v['agent_id'] == $vv['agent_id']) {
-                    $res[$kk]['num'] += 1;
-                    $res[$kk]['all_money'] += $v['money'];
-                    if ($v['status'] == 2) {
-                        $res[$kk]['finish_money'] += $v['money'];
-                    }else {
-                        $res[$kk]['money'] += $v['money'];
-                    }
-                    break;
-                }
-                if ($kk + 1 == count($res)) {
-                    $arr['agent_id'] = $v['agent_id'];
-                    $arr['num'] = 1;
-                    $arr['all_money'] = $v['money'];
-                    $arr['nickname'] = $v['agent']['user']['nickname'];
-                    $arr['headpic'] = $v['agent']['user']['headpic'];
-                    $arr['finish_money'] = 0;
-                    $arr['money'] = 0;
-                    if ($v['status'] == 2) {
-                        $arr['finish_money'] = $v['money'];
-                    } else {
-                        $arr['money'] = $v['money'];
-                    }
-                    array_push($res, $arr);
-                }
-            }
-        }
-        for ($i = 0; $i < count($res); $i++) {
-            for ($j = $i; $j < count($res); $j++) {
-                if ($res[$i]['num'] < $res[$j]['num']) {
-                    $t = $res[$j];
-                    $res[$j] = $res[$i];
-                    $res[$i] = $t;
-                }
-            }
-        }
-        return app('json')->success($res);
     }
 
 }

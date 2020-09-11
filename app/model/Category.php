@@ -10,6 +10,8 @@ namespace app\model;
 
 
 use bases\BaseModel;
+use exceptions\BaseException;
+use think\facade\Log;
 
 class Category extends BaseModel
 {
@@ -82,12 +84,16 @@ class Category extends BaseModel
     public static function deleteCategory($id)
     {
         $c_ids=self::where('pid',$id)->column('category_id');
+        if($c_ids){
+            throw new BaseException(['msg'=>'无法删除，该分类下有小分类']);
+        }
         $pid_goods = Goods::where('category_id', $id)->where('state',1)->count();
         $c_ids_goods = Goods::where(['category_id'=>$c_ids])->where('state',1)->count();
         if ($pid_goods > 0||$c_ids_goods>0) {
             return app('json')->fail('无法删除，该分类下有商品');
         }
         $result = self::where(['category_id' => $id])->delete();
+        $result1=self::where(['pid'=>$id])->delete();
         if (!$result) {
             return app('json')->fail();
         }

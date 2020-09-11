@@ -11,7 +11,6 @@ namespace subscribes;
 use app\model\Goods as GoodsModel;
 use app\model\Order as OrderModel;
 use app\model\OrderLog as OrderLogModel;
-use app\model\PtItem;
 use app\services\DeliveryMessage;
 use app\services\GzhDeliveryMessage;
 
@@ -56,19 +55,7 @@ class OrderSubscribes
         GoodsModel::editStock($data);
     }
 
-    /**
-     * 检测是否开启拼团，能否参加拼团
-     * @param $event
-     * @return int
-     * @throws OrderException
-     */
-    public function onCheckItem($event)
-    {
-        if(config('setting.is_business') == 1) {
-            PtItem::checkItemUser($event);
-        }
 
-    }
 
     /**
      * 公众号发送模板消息通知管理员

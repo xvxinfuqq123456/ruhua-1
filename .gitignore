@@ -1,13 +1,7 @@
-/.idea
-/
-/.vscode
-/
-/vendor/
-/runtime/
-
+/unpackage
+/runtime
 *.log
-
-.env
+ 
 .travis.yml
 LICENSE.txt
 composer.json

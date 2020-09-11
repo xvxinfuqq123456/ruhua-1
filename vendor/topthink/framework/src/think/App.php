@@ -39,7 +39,7 @@ use think\initializer\RegisterService;
  */
 class App extends Container
 {
-    const VERSION = '6.0.0RC4';
+    const VERSION = '6.0.2';
 
     /**
      * 应用调试模式
@@ -493,8 +493,8 @@ class App extends Container
     {
         $appPath = $this->getAppPath();
 
-        if (is_file($appPath . 'Common.php')) {
-            include_once $appPath . 'Common.php';
+        if (is_file($appPath . 'common.php')) {
+            include_once $appPath . 'common.php';
         }
 
         include_once $this->thinkPath . 'helper.php';

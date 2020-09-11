@@ -65,6 +65,8 @@ class AppPayService
     }
 
 
+
+
     //获取预支付订单
     public function getPrePayOrder($order_money)
     {
@@ -76,7 +78,7 @@ class AppPayService
         $data["body"] = '商城';
         $data["mch_id"] = $this->config['mch_id'];
         $data["nonce_str"] = $onoce_str;
-        $data["notify_url"] = $api_url . "/order/pay/notify";
+        $data["notify_url"] = $api_url . "/order/pay/app_notify";
         $data["out_trade_no"] = $this->orderNO;
         $data["spbill_create_ip"] = $this->get_client_ip();
         $data["total_fee"] = $order_money;
@@ -87,6 +89,7 @@ class AppPayService
         $xml = $this->arrayToXml($data);// 数组转成xml
         $response = $this->postXmlCurl($xml, $url);//发起请求
         $response = $this->xmlToArray($response);//将微信返回的结果xml转成数组
+
         if ($response['result_code'] == 'SUCCESS') {
             $this->recordPreOrder($response['prepay_id']);//写入prepay_id
             $res = $this->getOrder($response['prepay_id']);
@@ -95,6 +98,8 @@ class AppPayService
            return app('json')->fail($response['err_code_des']);
         }
     }
+
+
 
     //执行第二次签名，才能返回给客户端使用
     public function getOrder($prepayId)
@@ -117,6 +122,7 @@ class AppPayService
         OrderModel::where('order_id', $this->orderID)
             ->update(['prepay_id' => $wxOrder]);
     }
+
 
     /*
         生成签名

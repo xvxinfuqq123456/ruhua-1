@@ -7,7 +7,9 @@ use app\model\Article as ArticleModel;
 use app\model\BannerItem as BannerItemModel;
 use app\model\Category as CategoryModel;
 use app\model\Order as OrderModel;
+use app\model\OrderGoods;
 use app\model\OrderLog;
+use app\model\User;
 use interfaces\RoleInterface;
 
 class CmsService implements RoleInterface
@@ -49,22 +51,32 @@ class CmsService implements RoleInterface
     //订单列表
     public function get_order_list()
     {
-        $key=$this->param;
-        if (isset($key) and !empty($key)) {
-            $key = trim($key);
-            $data = OrderModel::with(['ordergoods.imgs', 'users' => function ($query) {
-                $query->field('id,nickname,headpic');
-            }])->where('order_num', 'like', '%' . $key . '%')
-                ->order('create_time desc')
-                ->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time', true)
-                ->select();
-        } else {
-            $data = OrderModel::with(['ordergoods.imgs', 'users' => function ($query) {
-                $query->field('id,nickname,headpic');
-            }])
-                ->order('create_time desc')->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time', true)
-                ->select();
+        $post=input('post.');
+        $where=[];
+        $os='';
+        if(isset($post['num']) && !empty($post['num'])) {
+            $where[] = ['order_num', 'like', '%' . trim($post['num']) . '%'];
         }
+        if(isset($post['user_name']) && !empty($post['user_name'])) {
+            $name=base64_encode(trim($post['user_name']));
+            $uid=User::where('nickname','like', $name)->value('id');
+            $where[] = ['user_id','=',$uid];
+    }
+        if(isset($post['pro_name']) && !empty($post['pro_name'])) {
+            $order_list=OrderGoods::where('goods_name','like', '%' . trim($post['pro_name']) . '%')->column('order_id');
+            $where[] = ['order_id', 'in', $order_list];
+        }
+
+        if(isset($post['pt'])&&!empty($post['pt'])){
+            $where[]=['item_id','>','0'];
+            $os="is_captain,item_id,";
+        }
+
+        $data = OrderModel::with(['ordergoods.imgs', 'users' => function ($query) {
+            $query->field('id,nickname,headpic');
+        }])->where($where)
+            ->order('create_time desc')->field("$os order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time", true)
+            ->limit(300)->select();
         return $data;
     }
 

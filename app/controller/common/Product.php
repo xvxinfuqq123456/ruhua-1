@@ -81,16 +81,6 @@ class Product extends BaseController
             $ids=$id;
         }
         $data = GoodsModel::with('imgs')->where(['state'=>1,'category_id'=>$ids])->select();
-        if (config('setting.is_business') == 1) {
-            foreach ($data as $k => $v) {
-                $data[$k]['discount'] = DiscountGoodsModel::getDiscountGoods($v['goods_id']);
-            }
-        }
-        if (config('setting.is_business')) {
-            foreach ($data as $k => $v) {
-                $data[$k]['pt'] = PtGoodsModel::getPtGoods($v['goods_id']);
-            }
-        }
         return app('json')->success($data);
     }
 
@@ -102,10 +92,8 @@ class Product extends BaseController
     public function getEvaluate($id)
     {
         (new IDPostiveInt)->goCheck();
-        $pj=RateModel::with(['user'=>function($q){
-            $q->field('id,nickname,headpic');
-        }])->where('goods_id',$id)->order('id desc')->select();
-        return app('json')->success($pj);
+        $list=RateModel::where('goods_id',$id)->order('id desc')->limit(20)->select();
+        return app('json')->success($list);
     }
 
 }

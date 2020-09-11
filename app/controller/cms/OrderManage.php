@@ -10,6 +10,7 @@ namespace app\controller\cms;
 
 
 use app\model\Order as OrderModel;
+use app\services\TokenService;
 use app\validate\IDPostiveInt;
 use bases\BaseController;
 use services\QyFactory;
@@ -68,9 +69,8 @@ class OrderManage extends BaseController
     {
         $data = OrderModel::with(['ordergoods.imgs', 'users' => function ($query) {
             $query->field('id,nickname,headpic');
-        }])
-            ->order('create_time desc')->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time', true)
-            ->select();
+        }])->where(['payment_state'=>1,'shipment_state'=>0])->where('state','in',[0,-1])->order('create_time desc')->field('order_id,order_num,user_id,state,payment_state,shipment_state,delete_time,update_time,pay_time,shipping_money,order_money,user_ip,message,create_time', true)
+            ->limit(100)->select();
         return app('json')->success($data);
     }
 
@@ -89,7 +89,7 @@ class OrderManage extends BaseController
 
 
     /**
-     * 更新订单配送信息
+     * 发货--更新订单配送信息
      * @return bool
      */
     public function editCourier()
@@ -132,5 +132,16 @@ class OrderManage extends BaseController
         $param = Request::param();
         $this->validate($param, $rule);
         return OrderModel::edit_price_model($param);
+    }
+
+    /**
+     * 手机端核销订单
+     * @param $number
+     * @return bool
+     */
+    public function hexiao($number)
+    {
+        $uid=TokenService::getCurrentUid();
+        return OrderModel::hexiao($number,$uid);
     }
 }

@@ -12,10 +12,14 @@ namespace app\model;
 use app\services\TokenService;
 use app\services\TuiService;
 use bases\BaseModel;
+use app\model\User as UserModel;
 use exceptions\OrderException;
 use think\facade\Db;
+use think\facade\Log;
 use think\model\concern\SoftDelete;
 use think\Request;
+use app\model\FxGoods as FxGoodsModel;
+use app\model\OrderGoods as GoodsModel;
 
 class Order extends BaseModel
 {
@@ -58,12 +62,16 @@ class Order extends BaseModel
         $orderGoods = new OrderGoods();
         $order_id = $order['order_id'];
         $goods_ids = $orderGoods->where('order_id', $order_id)->column('goods_id');
+        $user=UserModel::find($uid);
         if (in_array($post['goods_id'], $goods_ids)) {
             $data['user_id'] = $where['user_id'];
             $data['rate'] = $post['rate'];
             $data['content'] = $post['content'];
             $data['order_id'] = $order_id;
+            $data['video']=$post['video'];
             $data['goods_id'] = $post['goods_id'];
+            $data['headpic'] = $user['headpic'];
+            $data['nickname'] = $user['nickname'];
             $data['imgs'] = implode(',',$post['imgs']);
             $data['create_time'] = time();
         }
@@ -103,6 +111,7 @@ class Order extends BaseModel
         }
         Db::startTrans();
         try {
+            Log::error("确认收货");
             $res = $order->save(['state' => 1, 'shipment_state' => 2]);
             OrderGoods::where(['order_id' => $id, 'user_id' => $uid])->update(['state' => 1]);
             event('EndOrder', $order);//订单完成监听
@@ -118,6 +127,41 @@ class Order extends BaseModel
             return app('json')->fail();
         }
     }
+
+
+    public static function hexiao($number,$uid)
+    {
+        $web_auth=UserModel::where('id',$uid)->value('web_auth_id');
+        if($web_auth!=1){
+            return app('json')->fail('无权限');
+        }
+        $order = self::where('yz_code', $number)->find();
+        if (!$order) {
+            return app('json')->fail('验证码错误');
+        }
+        if ($order['payment_state'] != 1) {
+            return app('json')->fail('未支付的订单无法发货');
+        }
+        if ($order['shipment_state'] == 1 || $order['state']>0) {
+            return app('json')->fail('已经验证过了');
+        }
+        Db::startTrans();
+        try {
+            $data['shipment_state'] = 1;
+            $order->save($data);
+            $save['order_id'] = $order['order_id'];
+            $save['yz_code'] = $number;
+            $save['type_name'] = '核销成功';
+            $save['content'] =  '核销人ID：' . $uid;
+            OrderLog::create($save);
+            Db::commit();
+            return app('json')->success();
+        } catch (\Exception $e) {
+            Db::rollback();// 回滚事务
+            throw new OrderException(['msg' => '核销失败'.$e->getMessage()]);
+        }
+    }
+
 
     /**
      * 申请退款
@@ -187,12 +231,7 @@ class Order extends BaseModel
         if (!$order) {
             return '订单状态有误';
         }
-        if($order['item_id']){
-            $pt=PtItem::where('id',$order['item_id'])->find();
-            if($pt['state']!=2||$pt['state']!=-1){
-                return '拼团中，请等待拼团结束';
-            }
-        }
+
         $total_money=0;
         if($goods_id==0){
             $apply_money=Tui::where('order_id',$order_id)->sum('money');
@@ -406,6 +445,22 @@ class Order extends BaseModel
     public function setImgsAttr($v)
     {
         return $v['url'];
+    }
+
+    //计算分销佣金总和
+    public static function countmoney($data)
+    {
+        $money=0;
+        for($i=0;$i<count($data);$i++){
+            $money+=FxGoodsModel::where('goods_id',$data[$i]['goods_id'])->value('price');
+        }
+        return $money;
+
+    }
+
+    public function invitecode()
+    {
+        return $this->belongsTo('User','invite_code','invite_code');
     }
 
 

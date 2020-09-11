@@ -15,11 +15,15 @@ use app\model\Order as OrderModel;
 use app\model\SysConfig as SysConfigModel;
 use app\model\Video;
 use bases\BaseCommon;
+use exceptions\BaseException;
 use exceptions\TokenException;
 use kuaidi\Kd;
+use think\exception\ValidateException;
 use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Filesystem;
+use think\facade\Log;
+use think\facade\Request;
 use think\Image;
 
 class CommonServices
@@ -129,11 +133,30 @@ class CommonServices
      */
     public static function uploadImg($use, $back, $type = '', $cid = '')
     {
-        $file = Image::open(request()->file('img'));
+        /*if(Request::ip() != '123'){
+            return app('json')->fail('非法操作');
+        }*/
+        $up_file=request()->file('img');
+        $file = Image::open($up_file);
+        $filename=$up_file->getOriginalExtension();
+
+        if($filename!="jpg"&&$filename!="jpeg"&&$filename!="png"&&$filename!="gif"){
+            throw new BaseException(['msg'=>'非图片上传']);
+        }
         if (!$file) {
             return app('json')->fail('请上传文件img');
         }
-        $name = uniqid() . '.png';
+        try {
+            validate(['file' => [
+                'fileSize' => 10240,
+                'fileExt' => 'jpg,png,gif,jpeg',
+                'fileMime' => 'image/jpeg,image/png,image/gif',
+            ]])->check((array)$up_file);
+            $savename = \think\facade\Filesystem::putFile('topic', $up_file);
+        } catch (ValidateException $e) {
+            throw new BaseException(['msg'=>$e->getMessage()]);
+        }
+        $name = uniqid() .".". $filename;
         $file->thumb(500, 500, 1)->save('./uploads/' . $use . '/' . $name);
         $res = self::img_save($use, $name, $cid);   //保存图片
         if ($res['id']) {
@@ -165,7 +188,7 @@ class CommonServices
     {
         $file = request()->file('file');
         if (!$file) {
-            return app('json')->fail('请上传文件video');
+            return app('json')->fail('请上传视频文件');
         }
         validate(['file' => 'fileSize:10240000'])
             ->check(['file' => $file]);
@@ -174,6 +197,30 @@ class CommonServices
         $res = self::video_save('video', $fileName);   //保存视频
         if ($res['id']) {
             return app('json')->success($res['id']);
+        } else {
+            return app('json')->fail();
+        }
+    }
+
+    /**
+     * 上传视频返回地址
+     * @return mixed
+     */
+    public static function uploadVideoUrl()
+    {
+        $file = request()->file('file');
+        if (!$file) {
+            return app('json')->fail('请上传文件video');
+        }
+        validate(['file' => 'fileSize:10240000'])
+            ->check(['file' => $file]);
+        $fileName = Filesystem::putFile('video', $file, 'uniqid');
+
+        $res = self::video_save('video', $fileName);   //保存视频
+        if ($res['id']) {
+            $arr[0]=$res['url'];
+            return app('json')->go($arr);
+
         } else {
             return app('json')->fail();
         }
@@ -234,7 +281,7 @@ class CommonServices
             return app('json')->fail('未找到单号');
         }
         $code = SysConfigModel::where(['key' => 'appcode'])->value('value');
-        $kd = new Kd($code, $order['courier'], $order['courier_num']);
+        $kd = new Kd($code, '', $order['courier_num']);
         $data=json_decode($kd->get(),true);
         return json($data);
     }
@@ -290,6 +337,7 @@ class CommonServices
     //生成小程序码
     public function getXcxCodeImg($path, $scene, $sf_code = '')
     {
+        //$scene为参数
         $a = (new AccessToken)->getXcx();
         $access_token = $a['access_token'];
         //文档：https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/qr-code/wxacode.getUnlimited.html
@@ -297,20 +345,22 @@ class CommonServices
         $qcode = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=$access_token";
 
         if($scene){
-            $scene = $scene . '&sf=' . $sf_code;
+            $scene = $scene . '&' . $sf_code;
         }else{
-            $scene='?sf=' . $sf_code;
+            $scene= $sf_code;
         }
         $param = ["page" => $path, 'scene' => $scene, "width" => 140];
         //POST参数
         $result = (new BaseCommon())->curl_post($qcode, $param);
-        if($path){
-            //返回图片base数据给前端小程序，直接放前端img src即可显示;
-            $base64_image = "data:image/jpeg;base64," . base64_encode($result);
-            return $base64_image;
-        }
+        Log::error($result);
         $date = date('Ymd', time());
         $filename = $date . uniqid() . '.jpg'; //定义图片名字及格式
+        if($path){
+            //返回图片base数据给前端小程序，直接放前端img src即可显示;
+           /* $base64_image = "data:image/jpeg;base64," . base64_encode($result);
+            return $base64_image;*/
+            $filename = "pro".$date . uniqid() . '.jpg'; //定义图片名字及格式
+        }
         file_put_contents('./uploads/code/' . $filename, $result);    //保存小程序码到服务器
         $url = '/uploads/code/';
         return $url . $filename;

@@ -9,28 +9,49 @@
 namespace app\services;
 
 
-use app\model\FxOrder as FxOrderModel;
-use app\model\FxRecord as FxRecordModel;
+
 use app\model\Order as OrderModel;
-use app\model\PtItem as PtItemModel;
 use app\model\UserCoupon as UserCouponModel;
 use think\facade\Log;
 
 class TaskService
 {
 
-    /**
-     * 自动提现任务
-     * @return mixed
-     */
-    public function TxTask()
+    //清除缓存
+    public function clearCache()
     {
-        try {
-            (new FxRecordModel)->taskTx(); //定时打款
-        } catch (\Exception $e) {
-            return app('json')->fail($e);
+        //echo CACHE_PATH;  //缓存地址 --CACHE_PATH
+        if(file_exists(CACHE)){
+            $this->delDir(CACHE);
         }
-        return app('json')->success();
+    }
+
+
+    //删除缓存文件
+    public function delDir($dirName) {
+        $dh = opendir($dirName);
+        //循环读取文件
+        while ($file = readdir($dh)) {
+            if($file != '.' && $file != '..') {
+                $fullpath = $dirName . '/' . $file;
+                //判断是否为目录
+                if(!is_dir($fullpath)) {
+                    //如果不是,删除该文件
+                    if(!unlink($fullpath)) {
+                        echo $fullpath . '无法删除,可能是没有权限!<br>';
+                    }
+                } else {
+                    //如果是目录,递归本身删除下级目录
+                    $this->delDir($fullpath);
+                }
+            }
+        }
+        //关闭目录
+        closedir($dh);
+        //删除目录
+        //if(!rmdir($dirName)) {
+        //     R('Public/errjson',array($dirName.'__目录删除失败'));
+        //}
     }
 
 
@@ -57,9 +78,6 @@ class TaskService
     {
         try {
             OrderModel::closeOrder(); //关闭订单
-            if (config('setting.is_business')) {
-                PtItemModel::closeItem();//关闭拼团订单并退款
-            }
         } catch (\Exception $e) {
             return app('json')->fail($e->getMessage());
         }
@@ -103,7 +121,6 @@ class TaskService
             $interval = 15*60; // 每隔15分钟运行
             do {
                 OrderModel::closeOrder(); //关闭订单
-                PtItemModel::closeItem();//关闭拼团订单并退款
                 sleep($interval); // 按设置的时间等待15分钟循环执行
                 $str = file_get_contents(VAE_ROOT . "data/taskstate.lock");
                 Log::error('循环任务状态' . $str);

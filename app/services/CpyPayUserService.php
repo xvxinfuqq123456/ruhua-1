@@ -40,7 +40,7 @@ class CpyPayUserService
             'partner_trade_no' => $data['order_sn'], //商户订单号，需要唯一
             'openid' => $data['openid'],//转账用户的openid
             're_user_name' => $data['truename'],
-            'check_name' => 'NO_CHECK', //OPTION_CHECK不强制校验真实姓名, FORCE_CHECK：强制 NO_CHECK：
+            'check_name' => 'NO_CHECK', //NO_CHECK：不校验真实姓名;  FORCE_CHECK：强校验真实姓名
             'amount' => $data['money'] * 100, //付款金额单位为分
             'desc' => $data['desc'],//企业付款描述信息
             'spbill_create_ip' => Request::ip(),//获取IP
@@ -52,6 +52,7 @@ class CpyPayUserService
         $sign = implode($tarr, '&');
         $sign .= '&key=' . $this->_key;
         $webdata['sign'] = strtoupper(md5($sign));
+        Log::error("提现数据".json_encode($webdata,JSON_UNESCAPED_UNICODE));
         $wget = $this->ArrToXml($webdata);//数组转XML
         // $res = $this->curl_post_ssl(self::API_URL, $wget);//发送数据
         $res = $this->postXmlCurl(self::API_URL, $wget, true);//发送数据

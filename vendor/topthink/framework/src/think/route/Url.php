@@ -213,7 +213,7 @@ class Url
         if ($suffix) {
             $suffix = true === $suffix ? $this->route->config('url_html_suffix') : $suffix;
 
-            if ($pos = strpos($suffix, '|')) {
+            if (is_string($suffix) && $pos = strpos($suffix, '|')) {
                 $suffix = substr($suffix, 0, $pos);
             }
         }
@@ -241,6 +241,16 @@ class Url
         } elseif (0 === strpos($url, '@')) {
             // 解析到控制器
             $url = substr($url, 1);
+        } elseif ('' === $url) {
+            $url = $request->controller() . '/' . $request->action();
+        } else {
+            $controller = $request->controller();
+
+            $path       = explode('/', $url);
+            $action     = array_pop($path);
+            $controller = empty($path) ? $controller : array_pop($path);
+
+            $url = $controller . '/' . $action;
         }
 
         return $url;
@@ -289,6 +299,7 @@ class Url
         if (is_string($allowDomain) && false === strpos($allowDomain, '.')) {
             $allowDomain .= '.' . $request->rootDomain();
         }
+        $port = $request->port();
 
         foreach ($rule as $item) {
             $url     = $item->getRule();
@@ -304,8 +315,8 @@ class Url
                 continue;
             }
 
-            if (!in_array($request->port(), [80, 443])) {
-                $domain .= ':' . $request->port();
+            if ($port && !in_array($port, [80, 443])) {
+                $domain .= ':' . $port;
             }
 
             if (empty($pattern)) {
@@ -313,11 +324,12 @@ class Url
             }
 
             $type = $this->route->config('url_common_param');
+            $keys = [];
 
             foreach ($pattern as $key => $val) {
                 if (isset($vars[$key])) {
-                    $url = str_replace(['[:' . $key . ']', '<' . $key . '?>', ':' . $key, '<' . $key . '>'], $type ? $vars[$key] : urlencode((string) $vars[$key]), $url);
-                    unset($vars[$key]);
+                    $url    = str_replace(['[:' . $key . ']', '<' . $key . '?>', ':' . $key, '<' . $key . '>'], $type ? $vars[$key] : urlencode((string) $vars[$key]), $url);
+                    $keys[] = $key;
                     $url    = str_replace(['/?', '-?'], ['/', '-'], $url);
                     $result = [rtrim($url, '?/-'), $domain, $suffix];
                 } elseif (2 == $val) {
@@ -325,9 +337,13 @@ class Url
                     $url    = str_replace(['/?', '-?'], ['/', '-'], $url);
                     $result = [rtrim($url, '?/-'), $domain, $suffix];
                 } else {
+                    $result = null;
+                    $keys   = [];
                     break;
                 }
             }
+
+            $vars = array_diff_key($vars, array_flip($keys));
 
             if (isset($result)) {
                 return $result;
@@ -362,16 +378,16 @@ class Url
 
                 if (false !== strpos($anchor, '?')) {
                     // 解析参数
-                    list($anchor, $info['query']) = explode('?', $anchor, 2);
+                    [$anchor, $info['query']] = explode('?', $anchor, 2);
                 }
 
                 if (false !== strpos($anchor, '@')) {
                     // 解析域名
-                    list($anchor, $domain) = explode('@', $anchor, 2);
+                    [$anchor, $domain] = explode('@', $anchor, 2);
                 }
             } elseif (strpos($url, '@') && false === strpos($url, '\\')) {
                 // 解析域名
-                list($url, $domain) = explode('@', $url, 2);
+                [$url, $domain] = explode('@', $url, 2);
             }
         }
 
@@ -460,8 +476,9 @@ class Url
                 $url .= $suffix . '?' . $vars . $anchor;
             } else {
                 foreach ($vars as $var => $val) {
+                    $val = (string) $val;
                     if ('' !== $val) {
-                        $url .= $depr . $var . $depr . urlencode((string) $val);
+                        $url .= $depr . $var . $depr . urlencode($val);
                     }
                 }
 

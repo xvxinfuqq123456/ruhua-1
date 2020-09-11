@@ -7,7 +7,6 @@ use app\model\Coupon;
 use app\model\Order as OrderModel;
 use app\model\OrderGoods as OrderGoodsModel;
 use app\model\OrderLog;
-use app\model\PtItem;
 use app\model\Tui as TuiModel;
 use WxPay\WxPayApi;
 use WxPay\WxPayData;

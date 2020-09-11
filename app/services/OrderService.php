@@ -11,6 +11,7 @@ namespace app\services;
 
 use app\model\Delivery as DeliveryModel;
 use app\model\Discount;
+use app\model\User as UserModel;
 use app\model\Goods as GoodsModel;
 use app\model\GoodsSku;
 use app\model\Order as OrderModel;
@@ -18,12 +19,13 @@ use app\model\OrderGoods as OrderGoodsModel;
 use app\model\SysConfig;
 use app\model\UserAddress;
 use app\model\UserCoupon as UserCouponModel;
-use app\model\VipUser;
 use app\Request;
 use bases\BaseCommon;
+use exceptions\BaseException;
 use exceptions\OrderException;
 use GzhPay\JsApi;
 use think\facade\Db;
+use think\facade\Log;
 
 class OrderService
 {
@@ -67,10 +69,19 @@ class OrderService
         Db::startTrans();
         try {
             $order_data = $this->setOrderData($post, $uid);//组装订单数据
+
+            //这是是官方测试分销自动返佣的功能，如果忘记删了，还请自行删除一下
+            foreach ($post['json'] as $v){
+                if($v['goods_id']==66){
+                    $order_data['shipment_state']=1;
+                }
+            }
+
             $res_order = OrderModel::create($order_data);//创建订单
             $oid = $res_order->id;
             $goods = $this->setOrderGoods($oid, $post, $uid);//组装订单商品数据
             (new OrderGoodsModel)->saveall($goods);
+
             $data['id'] = $oid;
             $data['order_data'] = $order_data;
             Db::commit();
@@ -98,6 +109,7 @@ class OrderService
         $data['message'] = $post['msg'] ? $post['msg'] : ''; //留言
         $data['invite_code'] = array_key_exists('sfm',$post) ? $post['sfm'] :''; //身份码
         $data['invoice'] = array_key_exists('invoice',$post) ? $post['invoice'] : 0; //发票类型
+        $data['drive_type'] = $post['drive_type']?$post['drive_type']:'快递';
         $data['user_id'] = $uid;
         $post['user_id'] = $uid;            //uid 写入post
         $data['user_ip'] = (new Request())->ip(); //买家IP
@@ -107,11 +119,17 @@ class OrderService
         //获取信息及用户地址
         $user_data = UserAddress::getUserInfo($uid);//直接用默认地址
         $data['shipping_money'] = DeliveryModel::computeShipping($user_data['region_id'], $post['json']); //订单运费
+
         $data['goods_money'] = $this->computeGoodsMoney($post);    //商品总价'
+
         $data['coupon_money'] = $this->computeCouponMoney($post['coupon_id'], $uid, $post['json']);    //优惠券价格
         $data['order_money'] = $data['shipping_money'] + $data['goods_money'] - $data['coupon_money'];
-        if ($data['order_money'] != $post['total_price'] || $data['order_money'] <= 0) {//价格验证
-            throw new OrderException(['msg' => '价格错误']);
+        $dt=intval($data['order_money']) !=intval( $post['total_price']);
+//$data['order_money'] != $post['total_price']
+        if ($dt|| $data['order_money'] <= 0) {//价格验证
+         
+             throw new OrderException(['msg' => '价格错误'.$data['order_money'].'--'.$post['total_price'].'--'.$data['goods_money']]);
+           // throw new OrderException(['msg' => '价格错误']);
         }
         if ($data['type']) {
             $data['yz_code'] = rand(100000, 999999);
@@ -119,10 +137,7 @@ class OrderService
         if ($post['coupon_id']) {
             $data['coupon_id'] = $post['coupon_id'];
         }
-        if ($post['discount'] == 1) {                   //限时优惠
-            $data['activity_type'] = '限时优惠';
-        }
-
+ 
         $arr = array_merge($data, $user_data);
         return $arr;
     }
@@ -137,9 +152,6 @@ class OrderService
     public function setOrderGoods($order_id, $post, $uid)
     {
         $data = [];
-        if (config('setting.is_business') == 1 && $post['discount'] == 1) {                //限时折扣
-            $post = (new Discount())->setDiscountGoods($post, $uid);//组装限时折扣商品
-        }
         foreach ($post['json'] as $k => $v) {
             $pinfo = GoodsModel::getProductByID($v['goods_id']);//获取商品及关联数据
             $data[$k]['goods_id'] = $v['goods_id'];
@@ -159,7 +171,7 @@ class OrderService
             }
             if (config('setting.is_business') == 1 && $post['discount'] == 1) {
                 $data[$k]['price'] = $v['price'];
-                $data[$k]['discount_id'] = $v['discount_id'];
+                $data[$k]['discount_id'] = $v['discount_id']?$v['discount_id']:0;
             }
             $data[$k]['num'] = $v['num'];
             $data[$k]['cost_price'] = $pinfo['cost_price'];
@@ -216,9 +228,9 @@ class OrderService
     private function computeGoodsMoney($data)
     {
         $all_money = 0;
-        if (config('setting.is_business') == 1 && $data['discount'] == 1) {                   //计算限时优惠价格
-            return (new Discount())->computeDiscount($data);
-        }
+        Log::error("all_money");
+        Log::error($all_money);
+        Log::error("all_money");
         foreach ($data['json'] as $k => $v) {
             $goods = GoodsModel::with(['goodsSku'])->where('goods_id', $v['goods_id'])->find()->toArray();
             if ($v['sku_id']) {
@@ -232,14 +244,8 @@ class OrderService
                 $money = $v['num'] * $goods['price'];
                 $all_money += $money;
             }
-            if (app('system')->getValue('is_vip') == 1) {                   //如果开启会员购买
-                $vip = VipUser::where('user_id', $data['user_id'])->find();
-                if ($vip && $vip['end_time'] > time()) {
-                    $vip_money = $v['num'] * $goods['vip_price'];
-                    $all_money -= $vip_money;
-                }
-            }
         }
+
 
         return round($all_money, 2);
     }
