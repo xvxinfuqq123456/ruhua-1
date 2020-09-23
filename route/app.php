@@ -589,14 +589,7 @@ Route::group('cms', function () {
         Route::put('del_admin', 'cms.AdminManage/deleteAdmin');//删除管理员
         Route::post('set_web_auth', 'cms.AdminManage/setWebAuth');//设置前端管理员
     });
-
-    Route::group('company', function () {
-        Route::post('add_company', 'common.Company/add');//添加单位
-        Route::delete('del_company', 'common.Company/del');//删除单位
-        Route::post('update_company', 'common.Company/update');//更新单位
-        Route::get('get_company', 'common.Company/get_All');//获取所有单位
-        Route::get('get_companyById', 'common.Company/getById');//id获取单位
-    });
+ 
 
     Route::group('template', function () {
         Route::get('get_template', 'cms.Template/getAll');//获取所有模板
